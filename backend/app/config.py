@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     translate_api_url: str = ""
     translate_api_key: str = "1"
     deepseek_api_key: str = ""
+    reload_token: str = ""
 
     app_env: str = "dev"
     min_keywords_for_match: int = 1

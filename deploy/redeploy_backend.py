@@ -62,7 +62,7 @@ def main() -> None:
     if os.path.exists(env_path):
         for line in open(env_path, encoding="utf-8"):
             line = line.strip()
-            if line.startswith(("SARVAM_API_KEY=", "TRANSLATE_API_URL=", "TRANSLATE_API_KEY=", "DEEPSEEK_API_KEY=")):
+            if line.startswith(("SARVAM_API_KEY=", "TRANSLATE_API_URL=", "TRANSLATE_API_KEY=", "DEEPSEEK_API_KEY=", "RELOAD_TOKEN=")):
                 k, v = line.split("=", 1)
                 extra_env += f" -e {k}='{v}'"
 

@@ -94,6 +94,27 @@ def health() -> dict:
     return {"status": "ok", "neo4j": graph.ping()}
 
 
+@app.post("/reload")
+def reload_data(token: str = "") -> dict:
+    """Vide les caches memoire pour recharger la base de connaissances fraiche.
+    Appele par le Render Workflow apres avoir livre le nouveau knowledge_base.json."""
+    from .config import settings as _s
+    if _s.reload_token and token != _s.reload_token:
+        return {"reloaded": False, "error": "invalid token"}
+    from . import retrieval, kb_search, stats
+    for mod in (retrieval, kb_search):
+        try:
+            mod._index.cache_clear()
+        except Exception:
+            pass
+    for fn in ("_load", "compute", "locations", "_site_index", "_cond_index"):
+        try:
+            getattr(stats, fn).cache_clear()
+        except Exception:
+            pass
+    return {"reloaded": True}
+
+
 class MatchRequest(BaseModel):
     text: str
     limit: int = 5
