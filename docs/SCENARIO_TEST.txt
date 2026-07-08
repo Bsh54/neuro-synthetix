@@ -1,0 +1,151 @@
+========================================================================
+   NEURO-SYNTHETIX  —  SCENARIO DE TEST
+   URL : https://neuro.shadrakbessanh.me
+   Objectif : verifier que tout marche avant la demo / soumission
+========================================================================
+
+Legende :   [ ] a cocher     ->  resultat attendu
+
+
+------------------------------------------------------------------------
+0. AVANT DE COMMENCER
+------------------------------------------------------------------------
+- Ouvre le site sur Chrome (le micro navigateur marche mieux sur Chrome).
+- Autorise le micro quand le navigateur le demande.
+- Aie le son activE (pour entendre la voix Sarvam).
+
+
+------------------------------------------------------------------------
+1. LANDING PAGE  (page d'accueil "/")
+------------------------------------------------------------------------
+[ ] La page s'affiche : titre "The right clinical trial, in your language".
+[ ] Section "Two worlds that never meet" (Raj vs le labo).
+[ ] Les 4 etapes (Listen / Analyze / Graph / Answer).
+[ ] Section "Who it is for" (Patients / Community health workers / Local clinics).
+[ ] Footer classique (Product / Technology / Data).
+[ ] En haut a droite : selecteur de langue (EN / FR / HI) + bouton "Start".
+
+TEST LANGUE :
+[ ] Clique le selecteur -> choisis "Francais".
+    -> Tout le texte de la page passe en francais instantanement.
+[ ] Choisis "हिन्दी".
+    -> Tout passe en hindi (police Devanagari).
+[ ] Clique "Start" (ou "Commencer") -> on arrive sur le chat "/app".
+    -> La langue choisie est CONSERVEE sur le chat.
+
+
+------------------------------------------------------------------------
+2. CHAT — CONVERSATION EN ANGLAIS (cas simple)
+------------------------------------------------------------------------
+Mets la langue sur EN.
+
+[ ] Message d'accueil de l'IA a GAUCHE, en anglais, dans une bulle.
+[ ] Tes messages a DROITE (bulle sombre).
+
+Ecris :  "I have had a fever and a cough for three weeks and I lost weight"
+[ ] L'IA repond a gauche, texte qui apparait progressivement (streaming).
+[ ] Elle NE cherche PAS tout de suite : elle pose UNE question de suivi
+    (ex : depuis combien de temps / autres symptomes / ou habites-tu).
+[ ] AUCUNE etoile (*), aucun "d 39", texte propre.
+
+Reponds a sa question, ex :  "I am in Delhi, India, nothing else"
+[ ] Apres 1 ou 2 questions, l'IA lance la recherche (message "Here is what I found...").
+[ ] Un GRAPHE animE apparait (patient -> symptomes -> condition -> essai -> hopital).
+[ ] Des CARTES d'essais reels s'affichent (titre, condition, reference, site/pays).
+[ ] La reponse est LUE a voix haute.
+[ ] Un disclaimer "not a diagnosis" est visible.
+
+
+------------------------------------------------------------------------
+3. CHAT — COUVERTURE DE LA GRANDE BASE (info non perdue)
+------------------------------------------------------------------------
+Nouvelle consultation (bouton "New consultation").
+
+Ecris une maladie HORS des 24 conditions de base, par exemple :
+    "I have leukemia and I am looking for a trial"
+puis reponds a la question de suivi et demande de chercher.
+[ ] L'IA trouve quand meme de VRAIS essais (ils viennent de la grande base 5000).
+[ ] Teste aussi : "lupus", "melanoma", "multiple sclerosis".
+    -> Chacun doit remonter des essais reels. RIEN ne doit rester vide
+       si la maladie existe dans les registres.
+
+
+------------------------------------------------------------------------
+4. CHAT — HINDI  (traduction + voix Sarvam)   *** LA DEMO CLE ***
+------------------------------------------------------------------------
+Change la langue en "हिन्दी".
+[ ] Le message d'accueil se relance EN HINDI.
+
+Ecris en hindi translittere :
+    "mujhe teen hafte se bukhar aur khansi hai, vajan bhi kam ho gaya"
+[ ] L'IA comprend (traduction interne) et repond EN HINDI.
+[ ] La reponse est lue avec la VRAIE VOIX SARVAM (voix hindi).
+[ ] Continue la conversation, laisse-la chercher -> essais reels affiches.
+[ ] Aucune etoile, texte hindi propre.
+
+
+------------------------------------------------------------------------
+5. LE MEDECIN QUI AFFINE  (tool calling)
+------------------------------------------------------------------------
+Nouvelle consultation (EN).
+Donne peu d'infos au depart :  "I feel tired"
+[ ] L'IA ne cherche pas : elle pose des questions ciblees pour affiner
+    (ex : "do you also have X or Y", "depuis quand", "autres symptomes").
+[ ] Ce n'est qu'apres avoir compris qu'elle lance la recherche.
+[ ] Elle ne pose JAMAIS de diagnostic, ne nomme pas une maladie comme
+    conclusion, ne conseille aucun medicament.
+
+
+------------------------------------------------------------------------
+6. MODE VOCAL  (micro au centre)
+------------------------------------------------------------------------
+Clique l'icone micro (en bas a gauche du champ de saisie).
+[ ] On arrive sur l'ecran VOCAL : gros micro au centre.
+[ ] Panneau "Key information" a DROITE.
+[ ] Clique le gros micro -> statut "Listening..." + micro qui pulse.
+Parle (ex en anglais) : "I have chest pain and shortness of breath".
+[ ] Ta phrase s'affiche (transcription).
+[ ] Statut passe a "Thinking..." puis l'IA repond a voix haute.
+[ ] Le panneau de DROITE se remplit : symptomes detectes + essais trouves.
+[ ] Bouton fermer (croix en haut a gauche) -> retour au chat,
+    la conversation est la meme (synchronisee).
+
+
+------------------------------------------------------------------------
+7. HISTORIQUE  (localStorage — ne doit PAS se melanger)
+------------------------------------------------------------------------
+[ ] Fais 2 ou 3 consultations differentes (bouton "New consultation" entre chaque).
+[ ] Chaque conversation apparait dans l'historique (barre de gauche),
+    le titre = ton premier message.
+[ ] PAS d'entrees vides "New consultation" qui trainent.
+[ ] Clique sur une ancienne conversation -> elle se rouvre (lecture seule),
+    avec un bouton "Start a new consultation".
+[ ] Recharge la page (F5) -> l'historique est toujours la, rien de melange.
+[ ] Survole une conversation -> icone corbeille -> suppression OK.
+
+
+------------------------------------------------------------------------
+8. CHANGEMENT DE LANGUE EN COURS DE ROUTE
+------------------------------------------------------------------------
+[ ] Pendant une conversation, change la langue.
+    -> La conversation se relance proprement dans la nouvelle langue
+       (message d'accueil traduit). Normal : on repart a zero.
+
+
+------------------------------------------------------------------------
+9. POINTS A VERIFIER (qualite generale)
+------------------------------------------------------------------------
+[ ] Jamais d'etoiles (*), de #, de "d 39" ou d'entites bizarres.
+[ ] L'IA reste dans son role : orientation, pas de diagnostic.
+[ ] Les essais affiches sont reels (references NCT... ou CTIS/ISRCTN).
+[ ] Sur mobile : la barre laterale se replie (bouton burger), le chat marche.
+[ ] Les reponses sont rapides et fluides.
+
+
+------------------------------------------------------------------------
+BUGS / REMARQUES (a noter pendant le test)
+------------------------------------------------------------------------
+-
+-
+-
+========================================================================

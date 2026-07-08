@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Neuro-Synthetix. The right clinical trial, in your language.</title>
+<meta name="description" content="Neuro-Synthetix connects patients to clinical trials that are actually recruiting, in their own language." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=Open+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<style>
+  :root{
+    --ink:#14181C; --ink-soft:#404A53; --muted:#6B7680;
+    --paper:#FAF7F2; --paper-2:#F3EEE6; --card:#FFFFFF;
+    --line:#E6DFD4; --line-2:#DED6C8;
+    --teal:#0E7C66; --teal-d:#0A5C4C; --teal-wash:#E8F3EF;
+    --coral:#E4573B; --amber:#C77D2E; --violet:#6D4AA6;
+    --shadow:0 30px 70px -40px rgba(20,24,28,.4);
+    --shadow-s:0 12px 30px -18px rgba(20,24,28,.3);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Open Sans','Noto Sans Devanagari',system-ui,sans-serif;line-height:1.62}
+  body.lang-hi{font-family:'Noto Sans Devanagari','Open Sans',sans-serif}
+  h1,h2,h3,.mono-head{font-family:'IBM Plex Mono',ui-monospace,monospace;font-weight:700;letter-spacing:-.035em;line-height:1.04}
+  body.lang-hi h1,body.lang-hi h2,body.lang-hi h3{font-family:'Noto Sans Devanagari',sans-serif;letter-spacing:normal}
+  a{color:var(--teal-d);text-decoration:none}
+  :focus-visible{outline:3px solid var(--teal);outline-offset:3px;border-radius:8px}
+  .skip{position:absolute;left:-9999px}.skip:focus{left:16px;top:16px;background:#fff;padding:10px 16px;border-radius:10px;z-index:99}
+  .wrap{max-width:1140px;margin:0 auto;padding:0 26px}
+  .eyebrow{font-family:'Space Mono',monospace;font-size:.76rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--teal-d)}
+
+  header.nav{position:sticky;top:0;z-index:40;background:rgba(250,247,242,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav .wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 26px;gap:14px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:'IBM Plex Mono';font-weight:700;font-size:1.1rem;letter-spacing:-.03em}
+  .brand .g{width:34px;height:34px}
+  .nav-right{display:flex;align-items:center;gap:12px}
+  /* Language selector */
+  .lang{position:relative}
+  .lang-btn{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1.4px solid var(--line-2);border-radius:100px;
+    padding:8px 13px;font-family:'Space Mono';font-size:.8rem;font-weight:700;color:var(--ink);cursor:pointer}
+  .lang-btn:hover{border-color:var(--teal)}.lang-btn svg{width:13px;height:13px}
+  .lang-menu{position:absolute;right:0;top:calc(100% + 8px);background:#fff;border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow-s);padding:6px;min-width:150px;display:none;z-index:50}
+  .lang-menu.open{display:block}
+  .lang-menu button{display:flex;width:100%;gap:9px;align-items:center;background:none;border:none;text-align:left;
+    padding:9px 11px;border-radius:9px;font-family:'Open Sans';font-size:.9rem;color:var(--ink);cursor:pointer}
+  .lang-menu button:hover{background:var(--teal-wash)}
+  .lang-menu button[aria-current="true"]{color:var(--teal-d);font-weight:700}
+  .lang-menu .code{font-family:'Space Mono';font-size:.72rem;color:var(--muted);margin-left:auto}
+  .nav-cta{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:#fff;padding:11px 20px;border-radius:100px;
+    font-weight:700;font-size:.9rem;font-family:'IBM Plex Mono';letter-spacing:-.02em;transition:transform .15s,background .2s}
+  .nav-cta:hover{transform:translateY(-1px);background:var(--teal-d);color:#fff}.nav-cta svg{width:15px;height:15px}
+
+  .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center;padding:76px 26px 64px}
+  @media(max-width:900px){.hero .wrap{grid-template-columns:1fr;gap:36px;padding:52px 26px}}
+  .hero h1{font-size:clamp(2.4rem,5.6vw,4.2rem);margin:0 0 22px}
+  .hero h1 .accent{color:var(--teal-d)}
+  .hero p.lead{font-size:1.2rem;color:var(--ink-soft);max-width:46ch}
+  .hero .cta-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
+  .btn{display:inline-flex;align-items:center;gap:10px;font-weight:700;border:none;cursor:pointer;font-family:'IBM Plex Mono';letter-spacing:-.02em;
+    padding:15px 28px;border-radius:100px;font-size:1rem;transition:transform .15s,filter .2s,background .2s}
+  .btn svg{width:18px;height:18px}
+  .btn-main{background:var(--coral);color:#fff;box-shadow:0 18px 34px -18px rgba(228,87,59,.75)}
+  .btn-main:hover{transform:translateY(-2px);filter:brightness(1.05)}
+  .btn-line{background:transparent;color:var(--ink);border:1.6px solid var(--line-2)}
+  .btn-line:hover{border-color:var(--teal);color:var(--teal-d)}
+
+  .glass{position:relative;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:20px}
+  .glass .cap{display:flex;align-items:center;gap:9px;font-family:'Space Mono';font-size:.74rem;color:var(--muted);letter-spacing:.04em;margin-bottom:10px}
+  .glass .cap i{width:9px;height:9px;border-radius:50%;display:block}
+  .glass svg.graph{width:100%;height:290px;display:block}
+  .gedge{stroke:#CFC6B6;stroke-width:1.5;fill:none}
+  .gnode text{font-family:'Space Mono';font-size:11px;fill:var(--ink)}
+  .float-badge{position:absolute;right:-14px;bottom:26px;background:var(--ink);color:#fff;border-radius:16px;padding:12px 16px;box-shadow:var(--shadow-s);font-size:.82rem;max-width:220px}
+  .float-badge b{font-family:'IBM Plex Mono';letter-spacing:-.02em}
+
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+
+  section.block{padding:88px 0}
+  .lead-h{max-width:22ch}
+  .block h2{font-size:clamp(1.9rem,4.2vw,2.9rem);margin:12px 0 16px}
+  .block p.sub{font-size:1.12rem;color:var(--ink-soft);max-width:58ch}
+
+  .two{display:grid;grid-template-columns:1fr auto 1fr;gap:28px;align-items:stretch;margin-top:44px}
+  @media(max-width:820px){.two{grid-template-columns:1fr;gap:18px}}
+  .world{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:28px}
+  .world .tag{font-family:'Space Mono';font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .world h3{font-size:1.4rem;margin:10px 0 10px}
+  .world p{color:var(--ink-soft);margin:0}
+  .gap-x{display:grid;place-items:center;color:var(--coral)}.gap-x svg{width:44px;height:44px}
+  @media(max-width:820px){.gap-x{transform:rotate(90deg)}}
+
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:22px;overflow:hidden;margin-top:46px}
+  @media(max-width:820px){.steps{grid-template-columns:1fr 1fr}}
+  @media(max-width:520px){.steps{grid-template-columns:1fr}}
+  .step{background:var(--card);padding:28px 24px}
+  .step .n{font-family:'Space Mono';font-size:.78rem;color:var(--teal-d);letter-spacing:.08em}
+  .step h3{font-size:1.16rem;margin:12px 0 6px}
+  .step p{margin:0;color:var(--muted);font-size:.95rem}
+
+  /* Who it's for (replaces The proof) */
+  .audience{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:46px}
+  @media(max-width:820px){.audience{grid-template-columns:1fr}}
+  .aud{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px}
+  .aud .ic{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;background:var(--teal-wash);margin-bottom:14px}
+  .aud .ic svg{width:24px;height:24px;stroke:var(--teal-d)}
+  .aud h3{font-size:1.18rem;margin:0 0 8px}
+  .aud p{margin:0;color:var(--ink-soft);font-size:.97rem}
+
+  /* Map section */
+  #lmap{height:460px;width:100%;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);z-index:1;margin-top:28px}
+  @media(max-width:640px){#lmap{height:360px}}
+  .map-cta{text-align:center;margin-top:22px}
+  .map-count{font-family:'Space Mono';font-size:.9rem;color:var(--muted);margin-top:10px}
+  .leaflet-popup-content{font-family:'Open Sans';font-size:.86rem}
+
+  /* Classic footer */
+  footer{background:var(--ink);color:#C7CFD6;margin-top:20px}
+  footer .wrap{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:32px;padding:56px 26px 30px}
+  @media(max-width:760px){footer .wrap{grid-template-columns:1fr 1fr}}
+  @media(max-width:460px){footer .wrap{grid-template-columns:1fr}}
+  footer .fbrand{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono';font-weight:700;color:#fff;font-size:1.05rem;letter-spacing:-.03em;margin-bottom:12px}
+  footer .fbrand .g{width:30px;height:30px}
+  footer .ftag{color:#94A0A9;font-size:.92rem;max-width:34ch}
+  footer h4{font-family:'Space Mono';font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:#7F8B95;margin:0 0 14px}
+  footer ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  footer a{color:#C7CFD6;font-size:.94rem}footer a:hover{color:#fff}
+  .fbar{border-top:1px solid #263038}
+  .fbar .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:18px 26px;font-family:'Space Mono';font-size:.78rem;color:#7F8B95}
+</style>
+</head>
+<body>
+<a href="#hero" class="skip" data-i18n="skip">Skip to content</a>
+
+<header class="nav">
+  <div class="wrap">
+    <div class="brand">
+      <svg class="g" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="36" height="36" rx="12" fill="#0E7C66"/>
+        <circle cx="14" cy="15" r="4" fill="#EAF6F1"/><circle cx="27" cy="13" r="3" fill="#E4573B"/>
+        <circle cx="26" cy="27" r="4" fill="#F0C888"/><path d="M14 15 27 13M27 13 26 27M14 15 26 27" stroke="#8FD3C2" stroke-width="1.6"/>
+      </svg>
+      Neuro-Synthetix
+    </div>
+    <div class="nav-right">
+      <a href="/proof" class="nav-cta" style="background:#fff;color:var(--ink);border:1.4px solid var(--line-2)">The proof</a>
+      <div class="lang">
+        <button class="lang-btn" id="langBtn" aria-haspopup="true" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M3 12h18M12 3c2.5 2.5 3.5 6 3.5 9S14.5 18.5 12 21C9.5 18.5 8.5 15 8.5 12S9.5 5.5 12 3Z" stroke="currentColor" stroke-width="1.7"/></svg>
+          <span id="langLabel">EN</span>
+        </button>
+        <div class="lang-menu" id="langMenu" role="menu">
+          <button data-lang="en" role="menuitem">English <span class="code">EN</span></button>
+          <button data-lang="fr" role="menuitem">Francais <span class="code">FR</span></button>
+          <button data-lang="hi" role="menuitem">हिन्दी <span class="code">HI</span></button>
+        </div>
+      </div>
+      <a href="/app" class="nav-cta"><span data-i18n="start">Start</span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero" id="hero">
+  <div class="wrap">
+    <div>
+      <h1><span data-i18n="hero.t1">The right clinical trial,</span> <span class="accent" data-i18n="hero.t2">in your language.</span></h1>
+      <p class="lead" data-i18n="hero.lead">Thousands of patients search for treatment. Thousands of trials search for patients. Neuro-Synthetix builds the bridge, by voice, in seconds.</p>
+      <div class="cta-row">
+        <a href="/app" class="btn btn-main"><span data-i18n="hero.try">Try it now</span>
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a href="#how" class="btn btn-line" data-i18n="hero.how">See how it works</a>
+        <a href="/proof" class="btn btn-line" data-i18n="hero.data">See the data</a>
+      </div>
+    </div>
+
+    <div class="glass reveal" aria-hidden="true">
+      <div class="cap"><i style="background:#E4573B"></i><i style="background:#F0C888"></i><i style="background:#0E7C66"></i> patient_journey.graph</div>
+      <svg class="graph" viewBox="0 0 420 290" role="img" aria-label="Graph illustration">
+        <g class="edges" stroke-linecap="round">
+          <path class="gedge" d="M60,145 C130,90 150,80 200,90"/><path class="gedge" d="M60,145 C130,145 150,150 200,150"/>
+          <path class="gedge" d="M60,145 C130,200 150,210 200,210"/><path class="gedge" d="M200,90 C260,110 270,130 310,145"/>
+          <path class="gedge" d="M200,150 C260,150 270,148 310,145"/><path class="gedge" d="M200,210 C260,190 270,170 310,145"/>
+          <path class="gedge" d="M310,145 C350,120 360,120 385,110"/>
+        </g>
+        <g class="gnode"><circle cx="60" cy="145" r="20" fill="#0E7C66"/><text x="60" y="182" text-anchor="middle" data-i18n="g.you">you</text></g>
+        <g class="gnode"><circle cx="200" cy="90" r="13" fill="#2E9E86"/><text x="200" y="72" text-anchor="middle" data-i18n="g.fever">fever</text></g>
+        <g class="gnode"><circle cx="200" cy="150" r="13" fill="#2E9E86"/><text x="243" y="154" text-anchor="middle" data-i18n="g.cough">cough</text></g>
+        <g class="gnode"><circle cx="200" cy="210" r="13" fill="#2E9E86"/><text x="200" y="238" text-anchor="middle" data-i18n="g.weight">weight</text></g>
+        <g class="gnode"><circle cx="310" cy="145" r="16" fill="#6D4AA6"/><text x="310" y="176" text-anchor="middle" data-i18n="g.condition">condition</text></g>
+        <g class="gnode"><circle cx="385" cy="110" r="14" fill="#C77D2E"/><text x="385" y="90" text-anchor="middle" data-i18n="g.trial">trial</text></g>
+      </svg>
+      <div class="float-badge"><b data-i18n="badge.found">Trial found.</b><br><span data-i18n="badge.sub">Recruiting near you, free of charge.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="how" style="background:var(--paper)">
+  <div class="wrap">
+    <span class="eyebrow reveal" data-i18n="gap.eyebrow">The gap to close</span>
+    <h2 class="lead-h reveal" data-i18n="gap.title">Two worlds that never meet.</h2>
+    <p class="sub reveal" data-i18n="gap.sub">On one side, a patient in a village. On the other, a cutting-edge lab. Language and distance keep them apart. We tear that wall down.</p>
+    <div class="two">
+      <div class="world reveal">
+        <div class="tag" data-i18n="w1.tag">The patient</div>
+        <h3 data-i18n="w1.name">Raj, in Uttar Pradesh</h3>
+        <p data-i18n="w1.body">Fever for three weeks. A village doctor with no answers. Hospitals he cannot afford. He speaks Hindi, not medical English.</p>
+      </div>
+      <div class="gap-x reveal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 12h16M12 4l8 8-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="world reveal">
+        <div class="tag" data-i18n="w2.tag">The research</div>
+        <h3 data-i18n="w2.name">A lab, in Delhi</h3>
+        <p data-i18n="w2.body">A trial urgently needs patients with Raj's exact profile. Free for them. Yet the two sides have no idea the other exists.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="background:var(--paper-2)">
+  <div class="wrap">
+    <span class="eyebrow reveal" data-i18n="how.eyebrow">How it works</span>
+    <h2 class="lead-h reveal" data-i18n="how.title">From voice to trial, in four steps.</h2>
+    <div class="steps">
+      <div class="step reveal"><div class="n">01 / <span data-i18n="s1.n">LISTEN</span></div><h3 data-i18n="s1.h">Your voice</h3><p data-i18n="s1.p">Speak in your language. Speech becomes text.</p></div>
+      <div class="step reveal"><div class="n">02 / <span data-i18n="s2.n">ANALYZE</span></div><h3 data-i18n="s2.h">Clinical signals</h3><p data-i18n="s2.p">Key symptoms are pulled from your words.</p></div>
+      <div class="step reveal"><div class="n">03 / <span data-i18n="s3.n">GRAPH</span></div><h3 data-i18n="s3.h">Neo4j connects</h3><p data-i18n="s3.p">Symptom, condition, trial, hospital, in an instant.</p></div>
+      <div class="step reveal"><div class="n">04 / <span data-i18n="s4.n">ANSWER</span></div><h3 data-i18n="s4.h">Real trials</h3><p data-i18n="s4.p">Recruiting, near you, explained out loud.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" style="background:var(--paper)">
+  <div class="wrap">
+    <span class="eyebrow reveal" data-i18n="who.eyebrow">Who it is for</span>
+    <h2 class="lead-h reveal" data-i18n="who.title">Not a replacement for your doctor. A missing link.</h2>
+    <div class="audience">
+      <div class="aud reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke-width="1.7"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3 data-i18n="a1.h">Patients</h3>
+        <p data-i18n="a1.p">Describe symptoms by voice and discover trials you could never find alone.</p>
+      </div>
+      <div class="aud reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3v4M8 21v-5a4 4 0 0 1 8 0v5" stroke-width="1.7" stroke-linecap="round"/><circle cx="12" cy="9" r="2.5" stroke-width="1.7"/><path d="M5 21h14" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3 data-i18n="a2.h">Community health workers</h3>
+        <p data-i18n="a2.p">Field agents use it to refer villagers to the right trial in seconds.</p>
+      </div>
+      <div class="aud reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none"><path d="M4 21V8l8-4 8 4v13" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 10v4M10 12h4" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+        <h3 data-i18n="a3.h">Local clinics</h3>
+        <p data-i18n="a3.p">Turn a dead end into a referral toward frontier care.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="block" id="map-section" style="background:var(--paper-2)">
+  <div class="wrap">
+    <span class="eyebrow reveal" data-i18n="map.eyebrow">Global coverage</span>
+    <h2 class="lead-h reveal" data-i18n="map.title">Every research site we have, on one map.</h2>
+    <div id="lmap"></div>
+    <div class="map-count reveal" id="lmapcount"></div>
+    <div class="map-cta reveal">
+      <a href="/proof" class="btn btn-main" data-i18n="map.more">Learn more</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="fbrand">
+        <svg class="g" viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect x="2" y="2" width="36" height="36" rx="12" fill="#0E7C66"/><circle cx="14" cy="15" r="4" fill="#EAF6F1"/><circle cx="27" cy="13" r="3" fill="#E4573B"/><circle cx="26" cy="27" r="4" fill="#F0C888"/></svg>
+        Neuro-Synthetix
+      </div>
+      <p class="ftag" data-i18n="foot.tag">A voice bridge between patients and the clinical trials that could help them.</p>
+    </div>
+    <div>
+      <h4 data-i18n="foot.product">Product</h4>
+      <ul>
+        <li><a href="/" data-i18n="foot.home">Home</a></li>
+        <li><a href="/app" data-i18n="foot.assistant">Assistant</a></li>
+        <li><a href="#how" data-i18n="foot.how">How it works</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 data-i18n="foot.tech">Technology</h4>
+      <ul>
+        <li><a href="https://neo4j.com" target="_blank" rel="noopener">Neo4j</a></li>
+        <li><a href="https://www.sarvam.ai" target="_blank" rel="noopener">Sarvam AI</a></li>
+        <li><a href="https://render.com" target="_blank" rel="noopener">Render</a></li>
+        <li><a href="https://expo.dev" target="_blank" rel="noopener">Expo</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 data-i18n="foot.data">Data</h4>
+      <ul>
+        <li><a href="https://clinicaltrials.gov" target="_blank" rel="noopener">ClinicalTrials.gov</a></li>
+        <li><span data-i18n="foot.disc" style="color:#94A0A9">Orientation tool, not a diagnosis.</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="fbar"><div class="wrap">
+    <span>&copy; 2026 Neuro-Synthetix</span>
+    <span>HackHazards '26</span>
+  </div></div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+  const I18N={
+    en:{"skip":"Skip to content","start":"Start","hero.t1":"The right clinical trial,","hero.t2":"in your language.","hero.lead":"Thousands of patients search for treatment. Thousands of trials search for patients. Neuro-Synthetix builds the bridge, by voice, in seconds.","hero.try":"Try it now","hero.how":"See how it works","hero.data":"See the data","g.you":"you","g.fever":"fever","g.cough":"cough","g.weight":"weight","g.condition":"condition","g.trial":"trial","badge.found":"Trial found.","badge.sub":"Recruiting near you, free of charge.","gap.eyebrow":"The gap to close","gap.title":"Two worlds that never meet.","gap.sub":"On one side, a patient in a village. On the other, a cutting-edge lab. Language and distance keep them apart. We tear that wall down.","w1.tag":"The patient","w1.name":"Raj, in Uttar Pradesh","w1.body":"Fever for three weeks. A village doctor with no answers. Hospitals he cannot afford. He speaks Hindi, not medical English.","w2.tag":"The research","w2.name":"A lab, in Delhi","w2.body":"A trial urgently needs patients with Raj's exact profile. Free for them. Yet the two sides have no idea the other exists.","how.eyebrow":"How it works","how.title":"From voice to trial, in four steps.","s1.n":"LISTEN","s1.h":"Your voice","s1.p":"Speak in your language. Speech becomes text.","s2.n":"ANALYZE","s2.h":"Clinical signals","s2.p":"Key symptoms are pulled from your words.","s3.n":"GRAPH","s3.h":"Neo4j connects","s3.p":"Symptom, condition, trial, hospital, in an instant.","s4.n":"ANSWER","s4.h":"Real trials","s4.p":"Recruiting, near you, explained out loud.","who.eyebrow":"Who it is for","who.title":"Not a replacement for your doctor. A missing link.","a1.h":"Patients","a1.p":"Describe symptoms by voice and discover trials you could never find alone.","a2.h":"Community health workers","a2.p":"Field agents use it to refer villagers to the right trial in seconds.","a3.h":"Local clinics","a3.p":"Turn a dead end into a referral toward frontier care.","foot.tag":"A voice bridge between patients and the clinical trials that could help them.","foot.product":"Product","foot.home":"Home","foot.assistant":"Assistant","foot.how":"How it works","foot.tech":"Technology","foot.data":"Data","foot.disc":"Orientation tool, not a diagnosis.","map.eyebrow":"Global coverage","map.title":"Every research site we have, on one map.","map.more":"Learn more"},
+    fr:{"skip":"Aller au contenu","start":"Commencer","hero.t1":"L'essai clinique qu'il vous faut,","hero.t2":"dans votre langue.","hero.lead":"Des milliers de patients cherchent un traitement. Des milliers d'essais cherchent des patients. Neuro-Synthetix construit le pont, a la voix, en quelques secondes.","hero.try":"Essayer maintenant","hero.how":"Voir comment ca marche","hero.data":"Voir les donnees","g.you":"vous","g.fever":"fievre","g.cough":"toux","g.weight":"poids","g.condition":"condition","g.trial":"essai","badge.found":"Essai trouve.","badge.sub":"Recrute pres de chez vous, gratuitement.","gap.eyebrow":"Le fosse a combler","gap.title":"Deux mondes qui ne se rencontrent jamais.","gap.sub":"D'un cote, un patient dans un village. De l'autre, un laboratoire de pointe. La langue et la distance les separent. Nous abattons ce mur.","w1.tag":"Le patient","w1.name":"Raj, dans l'Uttar Pradesh","w1.body":"De la fievre depuis trois semaines. Un medecin de village demuni. Des hopitaux hors de prix. Il parle hindi, pas l'anglais medical.","w2.tag":"La recherche","w2.name":"Un labo, a Delhi","w2.body":"Un essai cherche d'urgence des patients au profil exact de Raj. Gratuit pour eux. Et pourtant, les deux mondes s'ignorent.","how.eyebrow":"Comment ca marche","how.title":"De la voix a l'essai, en quatre etapes.","s1.n":"ECOUTE","s1.h":"Votre voix","s1.p":"Parlez dans votre langue. La parole devient du texte.","s2.n":"ANALYSE","s2.h":"Signaux cliniques","s2.p":"Les symptomes cles sont extraits de vos mots.","s3.n":"GRAPHE","s3.h":"Neo4j relie","s3.p":"Symptome, condition, essai, hopital, en un instant.","s4.n":"REPONSE","s4.h":"Essais reels","s4.p":"Qui recrutent, pres de vous, expliques a voix haute.","who.eyebrow":"Pour qui","who.title":"Pas un remplacant du medecin. Le chainon manquant.","a1.h":"Les patients","a1.p":"Decrivez vos symptomes a la voix et decouvrez des essais introuvables seul.","a2.h":"Les agents de sante","a2.p":"Ils s'en servent pour orienter les villageois vers le bon essai en quelques secondes.","a3.h":"Les cliniques locales","a3.p":"Transformez une impasse en orientation vers des soins de pointe.","foot.tag":"Un pont vocal entre les patients et les essais cliniques qui pourraient les aider.","foot.product":"Produit","foot.home":"Accueil","foot.assistant":"Assistant","foot.how":"Comment ca marche","foot.tech":"Technologie","foot.data":"Donnees","foot.disc":"Outil d'orientation, pas un diagnostic.","map.eyebrow":"Couverture mondiale","map.title":"Tous nos sites de recherche, sur une carte.","map.more":"En savoir plus"},
+    hi:{"skip":"सामग्री पर जाएँ","start":"शुरू करें","hero.t1":"आपके लिए सही क्लिनिकल ट्रायल,","hero.t2":"आपकी भाषा में।","hero.lead":"हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। Neuro-Synthetix आवाज़ से, कुछ ही सेकंड में यह पुल बनाता है।","hero.try":"अभी आज़माएँ","hero.how":"यह कैसे काम करता है","hero.data":"डेटा देखें","g.you":"आप","g.fever":"बुखार","g.cough":"खाँसी","g.weight":"वज़न","g.condition":"स्थिति","g.trial":"ट्रायल","badge.found":"ट्रायल मिल गया।","badge.sub":"आपके पास भर्ती चल रही है, नि:शुल्क।","gap.eyebrow":"जिस दूरी को पाटना है","gap.title":"दो दुनियाएँ जो कभी नहीं मिलतीं।","gap.sub":"एक ओर गाँव में एक मरीज़। दूसरी ओर एक आधुनिक प्रयोगशाला। भाषा और दूरी उन्हें अलग रखती है। हम यह दीवार गिराते हैं।","w1.tag":"मरीज़","w1.name":"राज, उत्तर प्रदेश में","w1.body":"तीन हफ़्ते से बुखार। गाँव का डॉक्टर लाचार। महँगे अस्पताल। वह हिंदी बोलता है, मेडिकल अंग्रेज़ी नहीं।","w2.tag":"अनुसंधान","w2.name":"एक प्रयोगशाला, दिल्ली में","w2.body":"एक ट्रायल को राज जैसे मरीज़ों की तुरंत ज़रूरत है। उनके लिए नि:शुल्क। फिर भी दोनों एक-दूसरे से अनजान हैं।","how.eyebrow":"यह कैसे काम करता है","how.title":"आवाज़ से ट्रायल तक, चार चरणों में।","s1.n":"सुनना","s1.h":"आपकी आवाज़","s1.p":"अपनी भाषा में बोलें। आवाज़ पाठ बन जाती है।","s2.n":"विश्लेषण","s2.h":"नैदानिक संकेत","s2.p":"आपके शब्दों से मुख्य लक्षण निकाले जाते हैं।","s3.n":"ग्राफ़","s3.h":"Neo4j जोड़ता है","s3.p":"लक्षण, स्थिति, ट्रायल, अस्पताल, एक पल में।","s4.n":"उत्तर","s4.h":"असली ट्रायल","s4.p":"जो भर्ती कर रहे हैं, आपके पास, आवाज़ में समझाए गए।","who.eyebrow":"यह किसके लिए है","who.title":"आपके डॉक्टर का विकल्प नहीं। एक खोई हुई कड़ी।","a1.h":"मरीज़","a1.p":"आवाज़ से लक्षण बताएँ और ऐसे ट्रायल पाएँ जो आप अकेले कभी न ढूँढ पाते।","a2.h":"सामुदायिक स्वास्थ्यकर्मी","a2.p":"वे इसका उपयोग गाँववालों को सही ट्रायल तक भेजने के लिए करते हैं।","a3.h":"स्थानीय क्लिनिक","a3.p":"एक मृत अंत को आधुनिक इलाज की ओर रेफ़रल में बदलें।","foot.tag":"मरीज़ों और उन्हें मदद कर सकने वाले क्लिनिकल ट्रायल के बीच एक आवाज़ का पुल।","foot.product":"उत्पाद","foot.home":"होम","foot.assistant":"सहायक","foot.how":"यह कैसे काम करता है","foot.tech":"तकनीक","foot.data":"डेटा","foot.disc":"मार्गदर्शन उपकरण, निदान नहीं।","map.eyebrow":"वैश्विक कवरेज","map.title":"हमारे सभी अनुसंधान स्थल, एक मानचित्र पर।","map.more":"और जानें"}
+  };
+  const LABEL={en:"EN",fr:"FR",hi:"HI"};
+  function setLang(l){
+    const d=I18N[l]||I18N.en;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(d[k]!=null)el.textContent=d[k];});
+    document.documentElement.lang=l;document.body.classList.toggle('lang-hi',l==='hi');
+    document.getElementById('langLabel').textContent=LABEL[l];
+    document.querySelectorAll('#langMenu button').forEach(b=>b.setAttribute('aria-current',b.dataset.lang===l));
+    try{localStorage.setItem('ns_lang',l);}catch(e){}
+  }
+  const btn=document.getElementById('langBtn'),menu=document.getElementById('langMenu');
+  btn.addEventListener('click',()=>{const o=menu.classList.toggle('open');btn.setAttribute('aria-expanded',o);});
+  document.addEventListener('click',e=>{if(!e.target.closest('.lang')){menu.classList.remove('open');btn.setAttribute('aria-expanded','false');}});
+  menu.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{setLang(b.dataset.lang);menu.classList.remove('open');btn.setAttribute('aria-expanded','false');}));
+  let saved='en';try{saved=localStorage.getItem('ns_lang')||'en';}catch(e){}setLang(saved);
+
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  // Carte chargee a la volee quand la section devient visible
+  let mapLoaded=false;
+  const mapIo=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting&&!mapLoaded){mapLoaded=true;initMap();mapIo.disconnect();}});},{threshold:.05});
+  const mapSec=document.getElementById('map-section');if(mapSec)mapIo.observe(mapSec);
+  function initMap(){
+    if(typeof L==='undefined')return;
+    const map=L.map('lmap',{worldCopyJump:true,scrollWheelZoom:false}).setView([25,15],2);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap, &copy; CARTO',subdomains:'abcd',maxZoom:18}).addTo(map);
+    const cluster=L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:50});
+    fetch('/locations').then(r=>r.json()).then(d=>{
+      const cnt=document.getElementById('lmapcount');if(cnt)cnt.textContent=(d.count||0).toLocaleString()+' geolocated research sites';
+      const ec=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+      (d.points||[]).forEach(p=>{const m=L.circleMarker([p.lat,p.lon],{radius:5,color:'#0E7C66',weight:1.5,fillColor:'#0E7C66',fillOpacity:.6});
+        const head=`<b>${ec(p.name||'Site')}</b><br>${ec(p.city||'')}${p.country?', '+ec(p.country):''}`;
+        m.bindPopup(head+'<hr style="margin:7px 0;border:none;border-top:1px solid #E6DFD4"><div>loading trials…</div>',{maxWidth:280,minWidth:220});
+        m.on('popupopen',()=>{fetch('/site?name='+encodeURIComponent(p.name||'')+'&city='+encodeURIComponent(p.city||''))
+          .then(r=>r.json()).then(s=>{const items=(s.trials||[]).map(x=>`<div style="margin:7px 0"><a href="${ec(x.url)}" target="_blank" rel="noopener" style="font-weight:600">${ec(x.title||x.nct_id)}</a><br><span style="font-family:'Space Mono';font-size:.72rem;color:#6B7680">${ec(x.condition||'')} · ${ec(x.status||'')}</span></div>`).join('');
+            const body=items?`<div style="font-family:'Space Mono';font-size:.7rem;color:#6B7680;margin-bottom:2px">${s.count} RECRUITING TRIAL${s.count>1?'S':''}</div><div style="max-height:180px;overflow:auto">${items}</div>`:'<span style="color:#6B7680">No trial detail.</span>';
+            m.setPopupContent(head+'<hr style="margin:7px 0;border:none;border-top:1px solid #E6DFD4">'+body);}).catch(()=>{});});
+        cluster.addLayer(m);});
+      map.addLayer(cluster);
+    }).catch(()=>{});
+  }
+</script>
+</body>
+</html>

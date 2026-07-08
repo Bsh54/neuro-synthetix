@@ -1,0 +1,20 @@
+{
+ "site_Fred Hutchinson Canc": {
+  "count": 4,
+  "ex": [
+   "Chronic Lung Disease",
+   "Multiple Myeloma"
+  ]
+ },
+ "benin": {
+  "searched": false,
+  "trials": 0,
+  "reply": "Hello! I'd be happy to help you find clinical trials in Benin. Just one quick thing — do you have a particular health condition or symptom in mind that you're l"
+ },
+ "breast_france": {
+  "searched": true,
+  "trials": 8,
+  "hasgraph": false,
+  "reply": "I found several breast cancer trials in France. Here are the ones that are based there:\nA study on Tucatinib and Trastuz"
+ }
+}

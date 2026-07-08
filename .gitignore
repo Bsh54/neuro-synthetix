@@ -1,0 +1,28 @@
+# Secrets — NE JAMAIS COMMIT
+.env
+*.env
+serveurs-ssh.md
+**/serveurs-ssh.md
+ids.txt
+**/ids.txt
+
+# Données générées (reconstruites par app/kb_builder.py, ~8 Mo)
+backend/app/data/knowledge_base.json
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
