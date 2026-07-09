@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "runtimeVersion": { "policy": "sdkVersion" },
     "splash": {
       "backgroundColor": "#0E7C66",
       "resizeMode": "contain"
