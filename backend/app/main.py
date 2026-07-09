@@ -41,6 +41,18 @@ DISCLAIMER = (
     "See a doctor to confirm your eligibility for a clinical trial."
 )
 
+# Messages de repli localises (rerank indisponible / rien de pertinent)
+_FALLBACK = {
+    "en": "Here are some trials that may be relevant. Please see a doctor to confirm.",
+    "fr": "Voici quelques essais qui pourraient etre pertinents. Parlez-en a un medecin pour confirmer.",
+    "hi": "यहाँ कुछ ट्रायल हैं जो प्रासंगिक हो सकते हैं। कृपया पुष्टि के लिए डॉक्टर से मिलें।",
+}
+_NOFIT = {
+    "en": "I could not find a trial that clearly fits. It is best to see a doctor who can guide you.",
+    "fr": "Je n'ai pas trouve d'essai clairement adapte. Le mieux est de voir un medecin qui pourra vous orienter.",
+    "hi": "मुझे स्पष्ट रूप से उपयुक्त ट्रायल नहीं मिला। किसी डॉक्टर से मिलना सबसे अच्छा रहेगा जो आपका मार्गदर्शन कर सके।",
+}
+
 
 @app.on_event("startup")
 def _startup() -> None:
@@ -164,33 +176,28 @@ async def chat_ep(req: ChatRequest) -> dict:
     """Conversation IA (DeepSeek) : une question a la fois, puis recherche d'essais.
     Le patient parle dans sa langue ; on raisonne/repond en anglais puis on retraduit."""
     lang = req.lang or "en"
-    use_tr = (lang == "hi")   # la traduction ne sert QUE pour le hindi
+    need_tr = lang in ("fr", "hi")   # anglais interne pour tous : on traduit fr ET hi
 
-    # 1) entree patient -> anglais UNIQUEMENT si hindi
-    user_model = req.message
-    if use_tr:
-        t = await tr.translate(req.message, "hi", "en")
+    # 1) ENTREE -> anglais (pour toute langue non anglaise). Le pipeline entier est en anglais.
+    user_en = req.message
+    if need_tr:
+        t = await tr.translate(req.message, lang, "en")
         if t:
-            user_model = t
+            user_en = t
 
-    # 2) DeepSeek (tool calling) : repond directement en fr/en ; anglais pour hindi
+    # 2) Conversation en ANGLAIS uniquement (tool calling fiable, aucun melange de langues).
+    #    L'historique recu est deja en anglais (on renvoie user_en / reply_en cote anglais).
     parts = []
-    if lang == "fr":
-        parts.append("Always write your reply to the patient in French.")
-    # apres plusieurs echanges sans recherche -> devenir proactif
     user_turns = sum(1 for m in req.history if m.role == "user")
-    if user_turns >= 4:
+    if user_turns >= 3:
         parts.append(
-            "You have already asked several questions without running a search. "
-            "Stop asking broad open questions. Instead, be proactive: propose specific "
-            "symptoms or conditions the patient might have, as simple yes or no questions "
-            "(for example: do you also suffer from this, or from that?). "
-            "As soon as the patient confirms anything concrete, call the search_clinical_trials tool. "
-            "Do not keep the patient waiting with endless questions."
+            "You have already asked questions without searching. Stop asking open questions. "
+            "Propose concrete possibilities as simple yes/no questions, and as soon as the patient "
+            "confirms anything, call the search_clinical_trials tool. Do not keep them waiting."
         )
     directive = " ".join(parts) or None
     msgs = [{"role": m.role, "content": m.content} for m in req.history[-10:]]
-    msgs.append({"role": "user", "content": user_model})
+    msgs.append({"role": "user", "content": user_en})
     m1 = await deepseek.complete(msgs, tools=deepseek.TOOLS, lang_directive=directive)
     if m1 is None:
         return {"reply": None, "error": "llm_unavailable", "user_en": req.message}
@@ -209,7 +216,16 @@ async def chat_ep(req: ChatRequest) -> dict:
         symptoms = [str(s) for s in (args.get("symptoms") or [])]
         condition = args.get("condition") or ""
         location = (args.get("location") or "").strip()
-        keywords = extract_keywords(" ".join(symptoms + [condition, user_model]))
+        # Filet de securite (general, sans biais) : si l'appel arrive sans condition ni symptome
+        # (le modele n'a passe qu'un age/lieu), on deduit condition/symptomes en anglais depuis
+        # TOUTE la conversation (deja en anglais). Garantit le report du contexte.
+        if not condition and not symptoms:
+            convo_en = " ".join([m.content for m in req.history if m.content] + [user_en])
+            ex = await deepseek.extract_terms(convo_en)
+            condition = ex.get("condition") or condition
+            symptoms = ex.get("symptoms") or symptoms
+            location = location or ex.get("location") or ""
+        keywords = extract_keywords(" ".join(symptoms + [condition, user_en]))
 
         # RETRIEVAL (etape 1) : candidats du pays demande + candidats globaux (alternatives)
         cands = retrieval.retrieve(
@@ -231,11 +247,13 @@ async def chat_ep(req: ChatRequest) -> dict:
                 for h in (t.get("hospitals") or []))] or neo
         graph_payload = graph.build_graph_payload(neo) if neo else None
 
-        # RE-RANK IA (etape 2 + eligibilite) : choisit les pertinents + raison, filtre age/sexe
+        # RE-RANK IA (etape 2 + eligibilite) EN ANGLAIS : pertinents + raison, filtre age/sexe.
+        # req_text porte la condition/symptomes accumules pour que le rerank ait le contexte.
         patient = {"age": args.get("age"), "sex": args.get("sex")}
-        req_text = user_model + (f" (location: {location})" if location else "")
+        ask = " ".join([condition] + symptoms).strip() or user_en
+        req_text = ask + (f" (location: {location})" if location else "")
         rr = await deepseek.rerank(req_text, retrieval.compact_for_llm(cands[:25]),
-                                   patient=patient, lang_directive=directive)
+                                   patient=patient, lang_directive=None)
         by_id = {c["nct_id"]: c for c in cands}
         chosen = []
         for p in (rr or {}).get("picks", [])[:5]:
@@ -248,7 +266,7 @@ async def chat_ep(req: ChatRequest) -> dict:
         if chosen:
             # Analyse d'eligibilite par critere + confiance sur les essais retenus (2e passage cible)
             try:
-                elig = await deepseek.eligibility(req_text, patient, chosen, lang_directive=directive)
+                elig = await deepseek.eligibility(req_text, patient, chosen, lang_directive=None)
             except Exception:
                 elig = {}
             for cc in chosen:
@@ -260,34 +278,77 @@ async def chat_ep(req: ChatRequest) -> dict:
             trials = chosen
             visible = deepseek.clean((rr or {}).get("intro") or "")
         elif rr is not None and not (rr or {}).get("picks"):
-            # le modele a juge qu'aucun candidat n'est pertinent : on est honnete
+            # le modele a juge qu'aucun candidat n'est pertinent : on est honnete (anglais, traduit ensuite)
             trials = None
-            visible = deepseek.clean((rr or {}).get("intro") or "") or \
-                "I could not find a trial that clearly fits. It is best to see a doctor who can guide you."
+            visible = deepseek.clean((rr or {}).get("intro") or "") or _NOFIT["en"]
         else:
-            # repli si le re-rank echoue : meilleurs candidats bruts
+            # repli si le re-rank echoue : meilleurs candidats bruts (message anglais, traduit ensuite)
             trials = _merge_trials(neo, cands, limit=6) or None
-            visible = "Here are some trials that may be relevant. Please see a doctor to confirm."
+            visible = _FALLBACK["en"] if trials else _NOFIT["en"]
     else:
         visible = deepseek.clean(m1.get("content") or "")
 
-    # 5) reponse -> hindi seulement si besoin
+    # Contexte d'historique : toujours en ANGLAIS. Pour une recherche, on note la condition
+    # cherchee (marqueur) pour que le tour suivant conserve le sujet meme si le patient
+    # n'ajoute qu'un age ou un lieu.
+    if tool_calls:
+        _ask = " ".join([condition] + symptoms).strip()
+        reply_en_hist = ("I searched clinical trials for " + (_ask or "the patient's request")
+                         + (f" in {location}" if location else "") + ".")
+    else:
+        reply_en_hist = visible
+
+    # 5) SORTIE -> langue du patient (fr ET hi). Anglais : rien a traduire.
     reply_display = visible
-    if use_tr and visible:
-        t2 = await tr.translate(visible, "en", "hi")
+    if need_tr and visible:
+        t2 = await tr.translate(visible, "en", lang)
         if t2:
             reply_display = deepseek.clean(t2)
+    # Traduction des raisons + libelles de criteres des essais (un seul appel par lot).
+    if need_tr and trials:
+        await _translate_trials(trials, lang)
 
     return {
-        "reply": reply_display,        # a afficher / a lire
-        "reply_en": visible,           # contexte historique (fr ou en)
-        "user_en": user_model,         # contexte historique
+        "reply": reply_display,        # a afficher / a lire (langue du patient)
+        "reply_en": reply_en_hist,     # contexte historique (toujours anglais)
+        "user_en": user_en,            # contexte historique (toujours anglais)
         "keywords": keywords,
         "trials": trials,
         "graph": graph_payload,
         "searched": bool(tool_calls),
         "disclaimer": DISCLAIMER,
     }
+
+
+async def _translate_trials(trials: list, lang: str) -> None:
+    """Traduit en place les raisons et libelles de criteres vers la langue du patient,
+    en un seul appel groupe (robuste : si le decoupage ne correspond pas, on garde l'anglais)."""
+    segs: list[str] = []
+    slots: list = []  # (trial_index, 'reason') ou (trial_index, 'crit', crit_index)
+    for i, t in enumerate(trials):
+        if t.get("reason"):
+            segs.append(t["reason"]); slots.append((i, "reason", None))
+        for j, cr in enumerate(t.get("criteria_match") or []):
+            if cr.get("label"):
+                segs.append(cr["label"]); slots.append((i, "crit", j))
+    if not segs:
+        return
+    SEP = "\n@@@\n"
+    joined = SEP.join(segs)
+    out = await tr.translate(joined, "en", lang)
+    if not out:
+        return
+    parts = [p.strip() for p in out.split("@@@")]
+    if len(parts) != len(segs):
+        parts = [p.strip() for p in out.split("\n") if p.strip()]
+    if len(parts) != len(segs):
+        return  # decoupage incertain : on garde l'anglais plutot que de melanger
+    for (i, kind, j), tx in zip(slots, parts):
+        tx = deepseek.clean(tx)
+        if kind == "reason":
+            trials[i]["reason"] = tx
+        else:
+            trials[i]["criteria_match"][j]["label"] = tx
 
 
 class TTSRequest(BaseModel):

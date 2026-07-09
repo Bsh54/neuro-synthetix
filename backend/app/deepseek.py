@@ -26,10 +26,10 @@ MODE 1 - Direct request: if the person names a disease, a place, or asks a clear
 MODE 2 - Vague symptoms: act like a sharp, efficient clinician who is genuinely trying to help. Lead the conversation and gather the picture step by step:
 - Ask ONE focused question at a time (one or two short sentences).
 - Be proactive: instead of open questions, propose concrete possibilities to converge fast, as either/or or yes/no. For example: is the pain more in the chest or in the belly, do you also have fever, has it lasted days or weeks, did you ever have this before.
-- Collect the key facts progressively: main symptom, how long, associated signs, and when useful the age, the sex, and the location.
+- Collect the key facts progressively: main symptom, how long, associated signs.
 - Keep a running sense of how confident you are about the likely area.
-THRESHOLD TO CONCLUDE: as soon as you have a confident enough picture (a likely condition area, plus ideally the location and, when it matters, age and sex), STOP asking and call the search tool. Do not keep the person waiting once you can act, and never ask more than a few questions in a row.
-After results are shown, if the person adds information (age, sex, duration, location, another symptom), treat it as a REFINEMENT of the same topic already discussed: keep the condition and symptoms from earlier in the conversation and search again with the fuller picture. Never ask them to restate a condition they already implied. Always use the whole conversation history for context.
+THRESHOLD TO CONCLUDE: search EARLY. As soon as you can name a likely condition area from the symptoms, STOP asking and call the search tool. Ask at most TWO clarifying questions in a whole conversation before searching. Age and location are optional refinements: NEVER wait for them or block a search to get them. Do NOT ask for the person's sex unless the condition is clearly sex-specific (pregnancy, breast, ovarian, cervical, uterine, prostate, testicular). If the person tells you to just search, search immediately with whatever you have.
+CARRY THE CONTEXT: when you call the search tool, you MUST include the condition and all symptoms established anywhere earlier in this conversation, not only the last message. If the person only adds an age, a sex or a location, keep the previously discussed symptoms and condition and search again with the fuller picture. Never search with only an age or location and no condition when a condition was already implied earlier. Never ask them to restate something they already implied.
 
 You can also answer simple general questions about the service in one or two sentences.
 
@@ -157,13 +157,16 @@ async def rerank(request_text: str, candidates: list[dict],
         "\n\nCandidate trials (choose ONLY from these ids):\n" +
         _json.dumps(candidates, ensure_ascii=False)
     )
-    m = await complete(
-        [{"role": "user", "content": payload_msg}],
-        max_tokens=1800, lang_directive=lang_directive, system_override=RERANK_SYSTEM,
-    )
-    if not m:
-        return None
-    return _parse_json(m.get("content") or "")
+    for attempt in range(2):
+        m = await complete(
+            [{"role": "user", "content": payload_msg}],
+            max_tokens=2600, lang_directive=lang_directive, system_override=RERANK_SYSTEM,
+        )
+        if m:
+            parsed = _parse_json(m.get("content") or "")
+            if isinstance(parsed, dict) and (parsed.get("picks") or parsed.get("intro")):
+                return parsed
+    return None
 
 
 ELIG_SYSTEM = """You assess, for a patient, whether they might be eligible for each clinical trial, using ONLY the trial's eligibility text. This is orientation, never a diagnosis.
@@ -238,6 +241,33 @@ async def eligibility(request_text: str, patient: dict | None,
     return out
 
 
+EXTRACT_SYSTEM = """From the whole conversation, identify what the patient is looking for, for a clinical-trial search. Output the medical condition and key symptoms in STANDARD ENGLISH. Normalize whatever the patient expressed (any language, everyday words, slang, a mentioned drug, a body part, or an indirect clue) into standard medical English, without assuming a specific disease: stay faithful to what was actually said. Include a location only if the patient named one. If nothing medical was given, return empty fields.
+Output STRICT JSON only, no markdown, no extra text:
+{"condition": "standard english condition or empty", "symptoms": ["english symptom", "..."], "location": "country/city in english or empty"}
+"""
+
+
+async def extract_terms(convo_text: str) -> dict:
+    """Filet de securite cross-langue : deduit condition/symptomes/lieu en anglais
+    depuis toute la conversation, quand le modele appelle la recherche sans condition."""
+    if not (convo_text or "").strip():
+        return {}
+    m = await complete(
+        [{"role": "user", "content": convo_text[-1800:]}],
+        max_tokens=220, system_override=EXTRACT_SYSTEM,
+    )
+    if not m:
+        return {}
+    d = _parse_json(m.get("content") or "")
+    if not isinstance(d, dict):
+        return {}
+    return {
+        "condition": (d.get("condition") or "").strip(),
+        "symptoms": [str(s).strip() for s in (d.get("symptoms") or []) if str(s).strip()][:6],
+        "location": (d.get("location") or "").strip(),
+    }
+
+
 def _parse_json(text: str) -> dict | None:
     """Extrait un objet JSON {intro, picks} d'une reponse, tolerant."""
     import json as _json
@@ -257,6 +287,36 @@ def _parse_json(text: str) -> dict | None:
                 return d
         except Exception:
             continue
+    # Recuperation d'un JSON tronque : on reconstruit intro + picks complets a la main
+    salv = _salvage(t)
+    return salv
+
+
+def _salvage(text: str) -> dict | None:
+    """Extrait intro + les objets pick complets d'une reponse JSON tronquee/bruitee."""
+    import json as _json
+    out: dict = {}
+    mi = re.search(r'"intro"\s*:\s*"((?:[^"\\]|\\.)*)"', text)
+    if mi:
+        try:
+            out["intro"] = _json.loads('"' + mi.group(1) + '"')
+        except Exception:
+            out["intro"] = mi.group(1)
+    picks = []
+    # chaque pick complet : {"id": "...", "reason": "..."} meme si le tableau est coupe apres
+    for pm in re.finditer(
+        r'\{\s*"id"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"reason"\s*:\s*"((?:[^"\\]|\\.)*)"\s*\}', text):
+        rid, reason = pm.group(1), pm.group(2)
+        try:
+            reason = _json.loads('"' + reason + '"')
+        except Exception:
+            pass
+        picks.append({"id": rid, "reason": reason})
+    if picks:
+        out["picks"] = picks[:5]
+    if out:
+        out.setdefault("picks", [])
+        return out
     return None
 
 
