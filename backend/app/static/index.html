@@ -100,6 +100,8 @@
   .trial details.proceed[open] summary::before{content:'- '}
   .trial details.proceed ol{margin:8px 0 0;padding-left:20px;font-size:.86rem;color:var(--ink-soft)}
   .trial details.proceed li{margin:5px 0}
+  .trial .referbtn{display:block;margin-top:9px;background:#0E7C66;color:#fff;border:none;border-radius:9px;padding:8px 14px;font-size:.82rem;font-weight:700;cursor:pointer}
+  .trial .referbtn:hover{background:#0A5C4C}
   .trial .srclink{display:inline-block;margin-top:8px;font-family:'Space Mono';font-size:.78rem;color:var(--teal-d)}
   .composer{flex:0 0 auto;background:rgba(250,247,242,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
   .composer .in{max-width:760px;margin:0 auto;padding:14px 20px 8px;display:flex;gap:10px;align-items:flex-end}
@@ -247,6 +249,24 @@ const $=s=>document.querySelector(s);
 const thread=$('#thread'),scroller=$('#scroll'),input=$('#input'),sendBtn=$('#send');
 const NODE_COLORS={patient:'#0E7C66',symptom:'#2E9E86',condition:'#6D4AA6',trial:'#C77D2E',hospital:'#B9432C'};
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const REF={};
+function refer(id){
+  const x=REF[id];if(!x)return;
+  const site=(x.hospitals||[]).map(h=>h&&h.name?h.name+(h.city?', '+h.city:'')+(h.country?' ('+h.country+')':''):'').find(Boolean)||'-';
+  const L=[];
+  L.push('Neuro-Synthetix - '+(lang==='fr'?'suggestion d\'essai clinique':lang==='hi'?'क्लिनिकल ट्रायल सुझाव':'clinical trial suggestion'));
+  L.push((x.title||x.nct_id));
+  if(x.reason)L.push(x.reason);
+  L.push((t('res_cond'))+': '+(x.condition||'-'));
+  L.push((t('res_ref'))+': '+(x.nct_id||'-'));
+  L.push((t('res_site'))+': '+site);
+  if(typeof x.confidence==='number')L.push((t('res_conf'))+': '+x.confidence+'%');
+  if(x.url)L.push(x.url);
+  L.push(t('disc'));
+  const text=L.join('\n');
+  try{navigator.clipboard&&navigator.clipboard.writeText(text);}catch(e){}
+  window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank');
+}
 const scrollDn=()=>{scroller.scrollTop=scroller.scrollHeight;};
 const BOT='<svg viewBox="0 0 24 24" fill="none"><rect x="9" y="3" width="6" height="11" rx="3" fill="#fff"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
 
@@ -263,13 +283,13 @@ const T={
 };
 Object.assign(T.en,{res_match:"Match",res_cond:"Condition",res_ref:"Ref",res_site:"Site",res_trial:"Trial",res_conf:"Eligibility confidence",disc:"This is not a diagnosis. Please see a doctor.",
   w_mode:"Would you like to speak or type?",w_speak:"Speak",w_write:"Write",
-  elig:"Eligibility",proceed:"How to proceed",p_ref:"Note this reference and show it to your doctor:",p_contact:"Contact the research site:",p_via:"through the hospital listed above",p_confirm:"The team confirms your eligibility (age, condition, tests).",p_free:"Taking part is free for patients.",p_open:"Open official page",v_tap:"Tap the mic and speak",v_listen:"Listening...",v_think:"Thinking...",v_speak:"Speaking...",v_key:"Key information",v_sym:"Symptoms",v_tr:"Trials found",v_empty:"Information will appear here as we talk.",v_title:"Voice consultation"});
+  elig:"Eligibility",refer:"Refer / Share (WhatsApp)",proceed:"How to proceed",p_ref:"Note this reference and show it to your doctor:",p_contact:"Contact the research site:",p_via:"through the hospital listed above",p_confirm:"The team confirms your eligibility (age, condition, tests).",p_free:"Taking part is free for patients.",p_open:"Open official page",v_tap:"Tap the mic and speak",v_listen:"Listening...",v_think:"Thinking...",v_speak:"Speaking...",v_key:"Key information",v_sym:"Symptoms",v_tr:"Trials found",v_empty:"Information will appear here as we talk.",v_title:"Voice consultation"});
 Object.assign(T.fr,{res_match:"Corresp.",res_cond:"Condition",res_ref:"Ref",res_site:"Site",res_trial:"Essai",res_conf:"Confiance d'eligibilite",disc:"Ceci n'est pas un diagnostic. Consultez un medecin.",
   w_mode:"Voulez-vous parler ou ecrire ?",w_speak:"Parler",w_write:"Ecrire",
-  elig:"Eligibilite",proceed:"Comment proceder",p_ref:"Notez cette reference et montrez-la a votre medecin :",p_contact:"Contactez le site de recherche :",p_via:"via l'hopital indique ci-dessus",p_confirm:"L'equipe confirme votre eligibilite (age, condition, examens).",p_free:"La participation est gratuite pour les patients.",p_open:"Voir la page officielle",v_tap:"Touchez le micro et parlez",v_listen:"A l'ecoute...",v_think:"Reflexion...",v_speak:"Reponse...",v_key:"Informations cles",v_sym:"Symptomes",v_tr:"Essais trouves",v_empty:"Les informations apparaitront ici au fil de la discussion.",v_title:"Consultation vocale"});
+  elig:"Eligibilite",refer:"Referer / Partager (WhatsApp)",proceed:"Comment proceder",p_ref:"Notez cette reference et montrez-la a votre medecin :",p_contact:"Contactez le site de recherche :",p_via:"via l'hopital indique ci-dessus",p_confirm:"L'equipe confirme votre eligibilite (age, condition, examens).",p_free:"La participation est gratuite pour les patients.",p_open:"Voir la page officielle",v_tap:"Touchez le micro et parlez",v_listen:"A l'ecoute...",v_think:"Reflexion...",v_speak:"Reponse...",v_key:"Informations cles",v_sym:"Symptomes",v_tr:"Essais trouves",v_empty:"Les informations apparaitront ici au fil de la discussion.",v_title:"Consultation vocale"});
 Object.assign(T.hi,{res_match:"मिलान",res_cond:"स्थिति",res_ref:"संदर्भ",res_site:"स्थल",res_trial:"ट्रायल",res_conf:"पात्रता विश्वास",disc:"यह निदान नहीं है। कृपया डॉक्टर से मिलें।",
   w_mode:"आप बोलना चाहेंगे या लिखना?",w_speak:"बोलें",w_write:"लिखें",
-  elig:"पात्रता",proceed:"आगे कैसे बढ़ें",p_ref:"यह संदर्भ नोट करें और अपने डॉक्टर को दिखाएँ:",p_contact:"अनुसंधान स्थल से संपर्क करें:",p_via:"ऊपर दिए अस्पताल के माध्यम से",p_confirm:"टीम आपकी पात्रता की पुष्टि करती है (आयु, स्थिति, जाँच)।",p_free:"मरीज़ों के लिए भाग लेना नि:शुल्क है।",p_open:"आधिकारिक पेज खोलें",v_tap:"माइक दबाएँ और बोलें",v_listen:"सुन रहा हूँ...",v_think:"सोच रहा हूँ...",v_speak:"बोल रहा हूँ...",v_key:"मुख्य जानकारी",v_sym:"लक्षण",v_tr:"मिले ट्रायल",v_empty:"बातचीत के दौरान जानकारी यहाँ दिखेगी।",v_title:"वॉइस परामर्श"});
+  elig:"पात्रता",refer:"रेफ़र करें / साझा करें (WhatsApp)",proceed:"आगे कैसे बढ़ें",p_ref:"यह संदर्भ नोट करें और अपने डॉक्टर को दिखाएँ:",p_contact:"अनुसंधान स्थल से संपर्क करें:",p_via:"ऊपर दिए अस्पताल के माध्यम से",p_confirm:"टीम आपकी पात्रता की पुष्टि करती है (आयु, स्थिति, जाँच)।",p_free:"मरीज़ों के लिए भाग लेना नि:शुल्क है।",p_open:"आधिकारिक पेज खोलें",v_tap:"माइक दबाएँ और बोलें",v_listen:"सुन रहा हूँ...",v_think:"सोच रहा हूँ...",v_speak:"बोल रहा हूँ...",v_key:"मुख्य जानकारी",v_sym:"लक्षण",v_tr:"मिले ट्रायल",v_empty:"बातचीत के दौरान जानकारी यहाँ दिखेगी।",v_title:"वॉइस परामर्श"});
 let lang='en';
 function t(k){return (T[lang]&&T[lang][k]!=null)?T[lang][k]:T.en[k];}
 function applyStatic(){
@@ -351,7 +371,7 @@ async function sendMessage(text){
     historyEn.push({role:'user',content:d.user_en||text});
     historyEn.push({role:'assistant',content:d.reply_en||d.reply});
     const bm={role:'bot',kind:'text',text:d.reply,en:d.reply_en};active.messages.push(bm);if(persisted)persist();renderHist();
-    speak(d.reply);
+    if(voiceMode)speak(d.reply);   // audio uniquement en mode vocal, jamais en ecriture
     await typeBot(d.reply);   // apparition progressive (streaming visuel)
     if(d.trials&&d.trials.length){const rm={role:'bot',kind:'result',data:d};renderMessage(rm);pushMsg(rm);}
     scrollDn();busy=false;setComposer(true);return d;
@@ -367,6 +387,7 @@ function setComposer(on,keepText){input.disabled=!on;sendBtn.disabled=!on;if(on)
 
 function resultHTML(data){
   const trials=data.trials||[],kws=data.keywords||[];
+  trials.forEach(x=>{if(x&&x.nct_id)REF[x.nct_id]=x;});
   if(!trials.length)return '';
   const hasGraph=data.graph&&data.graph.edges&&data.graph.edges.length>0;
   let h=`<div class="kw">${kws.map(k=>`<span>${esc(k)}</span>`).join('')}</div>`+(hasGraph?`<svg class="mini" viewBox="0 0 640 240" role="img"></svg>`:'');
@@ -405,7 +426,8 @@ function proceedBlock(x){
     <li>${esc(t('p_contact'))} ${site}</li>
     <li>${esc(t('p_confirm'))}</li>
     <li>${esc(t('p_free'))}</li>
-    </ol>${x.url?`<a class="srclink" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(t('p_open'))} &rarr;</a>`:''}</details>`;
+    </ol>${x.url?`<a class="srclink" href="${esc(x.url)}" target="_blank" rel="noopener">${esc(t('p_open'))} &rarr;</a>`:''}</details>
+    <button class="referbtn" onclick="refer('${esc(x.nct_id||'')}')">${esc(t('refer'))}</button>`;
 }
 function drawGraph(svg,g){
   if(!svg)return;svg.innerHTML='';const H=240;const cols={patient:70,symptom:230,condition:400,trial:540,hospital:610};
