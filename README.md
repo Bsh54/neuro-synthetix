@@ -1,3 +1,5 @@
+<p align="center"><img src="logo.png" alt="Neuro-Synthetix" width="320" /></p>
+
 # Neuro-Synthetix
 
 **A voice bridge between patients and the clinical trials that could help them.**

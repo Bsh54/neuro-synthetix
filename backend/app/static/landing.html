@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Neuro-Synthetix. The right clinical trial, in your language.</title>
+<link rel="icon" type="image/png" href="/static/logo.png" />
 <meta name="description" content="Neuro-Synthetix connects patients to clinical trials that are actually recruiting, in their own language." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -146,12 +147,7 @@
 <header class="nav">
   <div class="wrap">
     <div class="brand">
-      <svg class="g" viewBox="0 0 40 40" fill="none" aria-hidden="true">
-        <rect x="2" y="2" width="36" height="36" rx="12" fill="#0E7C66"/>
-        <circle cx="14" cy="15" r="4" fill="#EAF6F1"/><circle cx="27" cy="13" r="3" fill="#E4573B"/>
-        <circle cx="26" cy="27" r="4" fill="#F0C888"/><path d="M14 15 27 13M27 13 26 27M14 15 26 27" stroke="#8FD3C2" stroke-width="1.6"/>
-      </svg>
-      Neuro-Synthetix
+      <img src="/static/logo.png" alt="Neuro-Synthetix" style="height:38px;width:auto;display:block" />
     </div>
     <div class="nav-right">
       <a href="/proof" class="nav-cta" style="background:#fff;color:var(--ink);border:1.4px solid var(--line-2)">The proof</a>
@@ -370,21 +366,26 @@
     if(typeof L==='undefined')return;
     const map=L.map('lmap',{worldCopyJump:true,scrollWheelZoom:false}).setView([25,15],2);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap, &copy; CARTO',subdomains:'abcd',maxZoom:18}).addTo(map);
-    const cluster=L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:50});
+    const ld=document.getElementById('maploader');
+    const hideLoader=()=>{if(ld){map.invalidateSize();ld.classList.add('hide');}};
+    const cluster=L.markerClusterGroup({chunkedLoading:true,maxClusterRadius:50,
+      chunkProgress:(processed,total)=>{if(processed>=total)hideLoader();}});
+    map.addLayer(cluster);
     fetch('/locations').then(r=>r.json()).then(d=>{
       const cnt=document.getElementById('lmapcount');if(cnt)cnt.textContent=(d.count||0).toLocaleString()+' geolocated research sites';
       const ec=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-      (d.points||[]).forEach(p=>{const m=L.circleMarker([p.lat,p.lon],{radius:5,color:'#0E7C66',weight:1.5,fillColor:'#0E7C66',fillOpacity:.6});
+      const markers=(d.points||[]).map(p=>{const m=L.circleMarker([p.lat,p.lon],{radius:5,color:'#0E7C66',weight:1.5,fillColor:'#0E7C66',fillOpacity:.6});
         const head=`<b>${ec(p.name||'Site')}</b><br>${ec(p.city||'')}${p.country?', '+ec(p.country):''}`;
         m.bindPopup(head+'<hr style="margin:7px 0;border:none;border-top:1px solid #E6DFD4"><div>loading trials…</div>',{maxWidth:280,minWidth:220});
         m.on('popupopen',()=>{fetch('/site?name='+encodeURIComponent(p.name||'')+'&city='+encodeURIComponent(p.city||''))
           .then(r=>r.json()).then(s=>{const items=(s.trials||[]).map(x=>`<div style="margin:7px 0"><a href="${ec(x.url)}" target="_blank" rel="noopener" style="font-weight:600">${ec(x.title||x.nct_id)}</a><br><span style="font-family:'Space Mono';font-size:.72rem;color:#6B7680">${ec(x.condition||'')} · ${ec(x.status||'')}</span></div>`).join('');
             const body=items?`<div style="font-family:'Space Mono';font-size:.7rem;color:#6B7680;margin-bottom:2px">${s.count} RECRUITING TRIAL${s.count>1?'S':''}</div><div style="max-height:180px;overflow:auto">${items}</div>`:'<span style="color:#6B7680">No trial detail.</span>';
             m.setPopupContent(head+'<hr style="margin:7px 0;border:none;border-top:1px solid #E6DFD4">'+body);}).catch(()=>{});});
-        cluster.addLayer(m);});
-      map.addLayer(cluster);
-      const ld=document.getElementById('maploader');if(ld){map.invalidateSize();setTimeout(()=>ld.classList.add('hide'),350);}
-    }).catch(()=>{const ld=document.getElementById('maploader');if(ld)ld.classList.add('hide');});
+        return m;});
+      if(markers.length){cluster.addLayers(markers);}else{hideLoader();}
+      // filet de securite : ne jamais laisser le loader coince
+      setTimeout(hideLoader,8000);
+    }).catch(hideLoader);
   }
 </script>
 </body>

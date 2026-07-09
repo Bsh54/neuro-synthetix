@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView,
-  ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Linking,
+  ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Linking, Image,
   StatusBar as RNStatusBar,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -139,10 +139,9 @@ export default function App() {
   if (step === 'splash') {
     return (
       <SafeAreaView style={s.splash}>
-        <StatusBar style="light" />
-        <View style={s.splashLogo} />
-        <Text style={s.splashName}>Neuro-Synthetix</Text>
-        <ActivityIndicator color="#EAF6F1" style={{ marginTop: 26 }} />
+        <StatusBar style="dark" />
+        <Image source={require('./assets/logo.png')} style={s.splashImg} resizeMode="contain" />
+        <ActivityIndicator color="#0E7C66" style={{ marginTop: 20 }} />
       </SafeAreaView>
     );
   }
@@ -249,9 +248,8 @@ export default function App() {
 
 const s = StyleSheet.create({
   app: { flex: 1, backgroundColor: '#FAF7F2', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
-  splash: { flex: 1, backgroundColor: '#0E7C66', alignItems: 'center', justifyContent: 'center' },
-  splashLogo: { width: 74, height: 74, borderRadius: 22, backgroundColor: '#EAF6F1' },
-  splashName: { color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: 0.4, marginTop: 18 },
+  splash: { flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
+  splashImg: { width: 240, height: 240 },
   center: { flex: 1, backgroundColor: '#FAF7F2', alignItems: 'center', justifyContent: 'center', padding: 26, paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   logo: { width: 54, height: 54, borderRadius: 16, backgroundColor: '#0E7C66', marginBottom: 16 },
   h1: { fontSize: 24, fontWeight: '700', color: '#14181C', textAlign: 'center' },

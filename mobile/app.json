@@ -5,11 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/logo.png",
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
     "splash": {
-      "backgroundColor": "#0E7C66",
+      "image": "./assets/logo.png",
+      "backgroundColor": "#FFFFFF",
       "resizeMode": "contain"
     },
     "assetBundlePatterns": [
