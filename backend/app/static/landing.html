@@ -71,6 +71,9 @@
   .btn-line{background:transparent;color:var(--ink);border:1.6px solid var(--line-2)}
   .btn-line:hover{border-color:var(--teal);color:var(--teal-d)}
 
+  .hero-logo{display:flex;align-items:center;justify-content:center;padding:10px}
+  .hero-logo img{width:100%;max-width:460px;height:auto;display:block}
+  @media(max-width:900px){.hero-logo img{max-width:340px;margin:0 auto}}
   .glass{position:relative;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:20px}
   .glass .cap{display:flex;align-items:center;gap:9px;font-family:'Space Mono';font-size:.74rem;color:var(--muted);letter-spacing:.04em;margin-bottom:10px}
   .glass .cap i{width:9px;height:9px;border-radius:50%;display:block}
@@ -183,23 +186,8 @@
       </div>
     </div>
 
-    <div class="glass reveal" aria-hidden="true">
-      <div class="cap"><i style="background:#E4573B"></i><i style="background:#F0C888"></i><i style="background:#0E7C66"></i> patient_journey.graph</div>
-      <svg class="graph" viewBox="0 0 420 290" role="img" aria-label="Graph illustration">
-        <g class="edges" stroke-linecap="round">
-          <path class="gedge" d="M60,145 C130,90 150,80 200,90"/><path class="gedge" d="M60,145 C130,145 150,150 200,150"/>
-          <path class="gedge" d="M60,145 C130,200 150,210 200,210"/><path class="gedge" d="M200,90 C260,110 270,130 310,145"/>
-          <path class="gedge" d="M200,150 C260,150 270,148 310,145"/><path class="gedge" d="M200,210 C260,190 270,170 310,145"/>
-          <path class="gedge" d="M310,145 C350,120 360,120 385,110"/>
-        </g>
-        <g class="gnode"><circle cx="60" cy="145" r="20" fill="#0E7C66"/><text x="60" y="182" text-anchor="middle" data-i18n="g.you">you</text></g>
-        <g class="gnode"><circle cx="200" cy="90" r="13" fill="#2E9E86"/><text x="200" y="72" text-anchor="middle" data-i18n="g.fever">fever</text></g>
-        <g class="gnode"><circle cx="200" cy="150" r="13" fill="#2E9E86"/><text x="243" y="154" text-anchor="middle" data-i18n="g.cough">cough</text></g>
-        <g class="gnode"><circle cx="200" cy="210" r="13" fill="#2E9E86"/><text x="200" y="238" text-anchor="middle" data-i18n="g.weight">weight</text></g>
-        <g class="gnode"><circle cx="310" cy="145" r="16" fill="#6D4AA6"/><text x="310" y="176" text-anchor="middle" data-i18n="g.condition">condition</text></g>
-        <g class="gnode"><circle cx="385" cy="110" r="14" fill="#C77D2E"/><text x="385" y="90" text-anchor="middle" data-i18n="g.trial">trial</text></g>
-      </svg>
-      <div class="float-badge"><b data-i18n="badge.found">Trial found.</b><br><span data-i18n="badge.sub">Recruiting near you, free of charge.</span></div>
+    <div class="hero-logo reveal">
+      <img src="/static/logo.png" alt="Neuro-Synthetix" />
     </div>
   </div>
 </section>
