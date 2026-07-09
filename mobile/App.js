@@ -30,6 +30,7 @@ export default function App() {
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [mode, setMode] = useState('write');       // 'speak' | 'write' — decides auto voice
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scroller = useRef(null);
   const t = (k) => (T[lang] && T[lang][k]) || T.en[k];
@@ -47,11 +48,12 @@ export default function App() {
     </View>
   );
 
-  const startChat = (mode) => {
+  const startChat = (m) => {
+    setMode(m);
     setMessages([{ role: 'bot', text: t('greet') }]);
     setHistory([{ role: 'assistant', content: T.en.greet }]);
     setStep('chat');
-    if (mode === 'speak') setTimeout(record, 400);
+    if (m === 'speak') setTimeout(record, 400);
   };
 
   const scroll = () => setTimeout(() => scroller.current && scroller.current.scrollToEnd({ animated: true }), 60);
@@ -72,7 +74,7 @@ export default function App() {
       setHistory((h) => [...h, { role: 'user', content: d.user_en || text }, { role: 'assistant', content: d.reply_en || d.reply }]);
       setMessages((m) => [...m, { role: 'bot', text: d.reply, trials: d.trials || [] }]);
       scroll();
-      speak(d.reply);
+      if (mode === 'speak') speak(d.reply);   // audio only in voice mode, never when typing
     } catch (e) {
       setMessages((m) => [...m, { role: 'bot', text: 'Network error. Please try again.' }]);
     }
@@ -207,6 +209,11 @@ export default function App() {
             <View style={[s.bubble, m.role === 'user' ? s.bubbleUser : s.bubbleBot]}>
               <Text style={m.role === 'user' ? s.tUser : s.tBot}>{m.text}</Text>
             </View>
+            {m.role === 'bot' && m.text ? (
+              <TouchableOpacity style={s.speakBtn} onPress={() => speak(m.text)}>
+                <Text style={s.speakTxt}>🔊</Text>
+              </TouchableOpacity>
+            ) : null}
             {m.trials && m.trials.slice(0, 4).map((x, j) => (
               <View key={j} style={s.trial}>
                 <Text style={s.trialTitle}>{x.title || x.nct_id}</Text>
@@ -267,6 +274,8 @@ const s = StyleSheet.create({
   stepP: { fontSize: 13.5, color: '#6B7680', marginTop: 3, lineHeight: 19 },
   thread: { flex: 1 },
   row: { marginBottom: 16 }, rowUser: { alignItems: 'flex-end' }, rowBot: { alignItems: 'flex-start' },
+  speakBtn: { marginTop: 5, paddingVertical: 3, paddingHorizontal: 8, borderRadius: 10, backgroundColor: '#EFEAE0' },
+  speakTxt: { fontSize: 14 },
   bubble: { maxWidth: '86%', padding: 12, borderRadius: 16 },
   bubbleBot: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E6DFD4', borderBottomLeftRadius: 5 },
   bubbleUser: { backgroundColor: '#14181C', borderBottomRightRadius: 5 },
