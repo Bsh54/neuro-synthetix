@@ -11,13 +11,13 @@ import * as FileSystem from 'expo-file-system/legacy';
 const API = 'https://neuro.shadrakbessanh.me';
 
 const T = {
-  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', code: 'hi-IN' },
-  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', code: 'en-IN' },
-  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', code: 'fr-FR' },
+  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', code: 'hi-IN' },
+  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', code: 'en-IN' },
+  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', code: 'fr-FR' },
 };
 
 export default function App() {
-  const [step, setStep] = useState('lang');      // lang -> mode -> chat
+  const [step, setStep] = useState('home');      // home -> lang -> mode -> chat
   const [lang, setLang] = useState('hi');
   const [messages, setMessages] = useState([]);
   const [history, setHistory] = useState([]);     // english context for the model
@@ -105,6 +105,22 @@ export default function App() {
   }
 
   /* ----- welcome screens ----- */
+  if (step === 'home') {
+    return (
+      <SafeAreaView style={s.center}>
+        <StatusBar style="dark" />
+        <View style={s.logo} />
+        <Text style={s.h1}>Neuro-Synthetix</Text>
+        <Text style={[s.sub, { maxWidth: 300, textAlign: 'center', marginBottom: 30 }]}>{t('tag')}</Text>
+        <TouchableOpacity style={s.startBtn} onPress={() => setStep('lang')}>
+          <Text style={s.startTxt}>{t('begin')}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={{ marginTop: 18 }} onPress={() => Linking.openURL(API)}>
+          <Text style={s.learn}>{t('learn')} →</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
   if (step === 'lang') {
     return (
       <SafeAreaView style={s.center}>
@@ -197,6 +213,9 @@ const s = StyleSheet.create({
   modeBtn: { alignItems: 'center', borderWidth: 1.6, borderColor: '#DED6C8', borderRadius: 18, paddingVertical: 26, paddingHorizontal: 26, backgroundColor: '#fff', width: 140 },
   modePrimary: { borderColor: '#0E7C66', backgroundColor: '#E8F3EF' },
   modeIcon: { fontSize: 38, marginBottom: 10 }, modeTxt: { fontSize: 17, fontWeight: '700', color: '#14181C' },
+  startBtn: { backgroundColor: '#0E7C66', borderRadius: 16, paddingVertical: 16, paddingHorizontal: 60, marginTop: 4 },
+  startTxt: { color: '#fff', fontSize: 18, fontWeight: '700', letterSpacing: 0.3 },
+  learn: { color: '#0A5C4C', fontSize: 15, fontWeight: '700' },
   bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#E6DFD4', backgroundColor: '#FAF7F2' },
   brand: { fontWeight: '700', fontSize: 17, color: '#14181C' }, lang: { fontWeight: '700', color: '#0A5C4C' },
   thread: { flex: 1 },
