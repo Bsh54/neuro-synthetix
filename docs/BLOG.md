@@ -131,9 +131,20 @@ for ClinicalTrials.gov entries than for others, and some registries (like India'
 block automated access — so we surface Indian trials through ClinicalTrials.gov's India
 data instead. We would rather be honest about a limit than fake a number.
 
+### On your phone (Expo)
+
+The same assistant runs as a native mobile app built with Expo / React Native — same
+backend, same voice, same real trials. Install **Expo Go**, then scan this QR code
+(or open the link inside Expo Go):
+
+![Scan with Expo Go](https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=exp://qzkabn0-bsh54-8081.exp.direct)
+
+`exp://qzkabn0-bsh54-8081.exp.direct`
+
 ### Try it
 
-- Live: https://neuro.shadrakbessanh.me
+- Live web: https://neuro.shadrakbessanh.me
+- Mobile (Expo Go): `exp://qzkabn0-bsh54-8081.exp.direct`
 - Code: (colle ici le lien de ton repo GitHub)
 
 Neuro-Synthetix is an orientation tool. It does not provide a medical diagnosis and does

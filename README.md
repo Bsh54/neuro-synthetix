@@ -9,6 +9,20 @@ diagnose. It orients toward trials, always reminding the patient to confirm with
 Built for **HackHazards '26** — theme HealthTech & Bio Platforms.
 Live: https://neuro.shadrakbessanh.me
 
+## 📱 Mobile app (Expo)
+
+The same assistant runs as a native app. Install **Expo Go** on your phone, then
+scan the QR code below (or open the link inside Expo Go):
+
+<img src="mobile/expo-qr.png" width="200" alt="Scan with Expo Go" />
+
+```
+exp://qzkabn0-bsh54-8081.exp.direct
+```
+
+The app hosts the same backend, so voice, AI search and real trials work out of the box.
+Source: [`mobile/`](mobile/) · built with Expo / React Native.
+
 ---
 
 ## What it does
