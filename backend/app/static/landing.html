@@ -71,9 +71,12 @@
   .btn-line{background:transparent;color:var(--ink);border:1.6px solid var(--line-2)}
   .btn-line:hover{border-color:var(--teal);color:var(--teal-d)}
 
-  .hero-illus{display:flex;align-items:center;justify-content:center}
-  .hero-illus svg{width:100%;max-width:500px;height:auto;display:block;filter:drop-shadow(0 18px 40px rgba(14,124,102,.12))}
-  @media(max-width:900px){.hero-illus svg{max-width:420px;margin:0 auto}}
+  .hero-photo{position:relative;width:100%;max-width:460px;margin:0 auto}
+  .hero-photo img{width:100%;height:440px;object-fit:cover;object-position:center top;border-radius:24px;box-shadow:0 22px 50px rgba(14,124,102,.18);display:block}
+  .hero-chip{position:absolute;left:-14px;bottom:22px;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:11px 14px;box-shadow:0 10px 26px rgba(20,24,28,.12);max-width:230px}
+  .hero-chip .dot{width:12px;height:12px;border-radius:50%;background:#12A17F;box-shadow:0 0 0 4px rgba(18,161,127,.18);flex:0 0 12px}
+  .hero-chip b{font-size:.9rem;color:var(--ink)} .hero-chip span{font-size:.76rem;color:#6B7680}
+  @media(max-width:900px){.hero-photo img{height:360px}}
   .glass{position:relative;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:20px}
   .glass .cap{display:flex;align-items:center;gap:9px;font-family:'Space Mono';font-size:.74rem;color:var(--muted);letter-spacing:.04em;margin-bottom:10px}
   .glass .cap i{width:9px;height:9px;border-radius:50%;display:block}
@@ -186,62 +189,12 @@
       </div>
     </div>
 
-    <div class="hero-illus reveal" aria-hidden="true">
-      <svg viewBox="0 0 480 380" role="img" aria-label="A patient connected by voice to a clinical trial">
-        <defs>
-          <linearGradient id="gcard" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#F3FBF8"/><stop offset="1" stop-color="#EAF6F1"/>
-          </linearGradient>
-          <linearGradient id="gteal" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#12A17F"/><stop offset="1" stop-color="#0E7C66"/>
-          </linearGradient>
-        </defs>
-        <rect x="6" y="6" width="468" height="368" rx="28" fill="url(#gcard)" stroke="#DDEDE7"/>
-        <circle cx="86" cy="70" r="52" fill="#0E7C66" opacity=".08"/>
-        <circle cx="410" cy="320" r="64" fill="#E4573B" opacity=".07"/>
-
-        <!-- connexion voix -> essai -->
-        <path d="M132 232 C210 200 250 150 330 150" fill="none" stroke="#0E7C66" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round" opacity=".55"/>
-        <circle cx="236" cy="176" r="7" fill="#F0C888" stroke="#fff" stroke-width="2"/>
-
-        <!-- patient -->
-        <g>
-          <circle cx="112" cy="210" r="26" fill="url(#gteal)"/>
-          <circle cx="112" cy="200" r="9" fill="#EAF6F1"/>
-          <path d="M96 226 a16 12 0 0 1 32 0 z" fill="#EAF6F1"/>
-          <!-- bulle voix -->
-          <g transform="translate(150 150)">
-            <rect x="0" y="0" width="92" height="52" rx="14" fill="#fff" stroke="#DDEDE7"/>
-            <path d="M18 52 l0 14 l16 -14 z" fill="#fff" stroke="#DDEDE7"/>
-            <g stroke="#0E7C66" stroke-width="4" stroke-linecap="round">
-              <line x1="18" y1="26" x2="18" y2="34"/><line x1="30" y1="18" x2="30" y2="42"/>
-              <line x1="42" y1="12" x2="42" y2="48"/><line x1="54" y1="20" x2="54" y2="40"/>
-              <line x1="66" y1="24" x2="66" y2="36"/><line x1="78" y1="28" x2="78" y2="32"/>
-            </g>
-          </g>
-        </g>
-
-        <!-- essai / hopital -->
-        <g transform="translate(300 120)">
-          <path d="M40 -18 C58 -18 70 -4 70 12 C70 34 40 56 40 56 C40 56 10 34 10 12 C10 -4 22 -18 40 -18 Z" fill="url(#gteal)"/>
-          <circle cx="40" cy="12" r="16" fill="#EAF6F1"/>
-          <path d="M40 4 v16 M32 12 h16" stroke="#0E7C66" stroke-width="4" stroke-linecap="round"/>
-          <rect x="6" y="70" width="108" height="86" rx="12" fill="#fff" stroke="#DDEDE7"/>
-          <rect x="20" y="88" width="20" height="20" rx="4" fill="#CDE9E1"/>
-          <rect x="50" y="88" width="20" height="20" rx="4" fill="#CDE9E1"/>
-          <rect x="80" y="88" width="20" height="20" rx="4" fill="#CDE9E1"/>
-          <rect x="46" y="120" width="28" height="36" rx="5" fill="#0E7C66"/>
-        </g>
-
-        <!-- pastille match -->
-        <g transform="translate(316 250)">
-          <rect x="0" y="0" width="150" height="52" rx="14" fill="#fff" stroke="#DDEDE7"/>
-          <circle cx="26" cy="26" r="13" fill="#12A17F"/>
-          <path d="M20 26 l4 5 l9 -10" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          <rect x="48" y="16" width="86" height="8" rx="4" fill="#14181C" opacity=".82"/>
-          <rect x="48" y="30" width="60" height="7" rx="3.5" fill="#8FA0AA"/>
-        </g>
-      </svg>
+    <div class="hero-photo reveal">
+      <img src="/static/hero.jpg" alt="A health professional in a voice teleconsultation" loading="lazy" />
+      <div class="hero-chip">
+        <span class="dot"></span>
+        <div><b data-i18n="badge.found">Trial found.</b><br><span data-i18n="badge.sub">Recruiting near you, free of charge.</span></div>
+      </div>
     </div>
   </div>
 </section>
