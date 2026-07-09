@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Neuro-Synthetix",
+    "slug": "neuro-synthetix",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#0E7C66",
+      "resizeMode": "contain"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "So you can describe your symptoms by voice."
+      }
+    },
+    "android": {
+      "package": "com.neurosynthetix.app",
+      "permissions": ["RECORD_AUDIO"]
+    }
+  }
+}

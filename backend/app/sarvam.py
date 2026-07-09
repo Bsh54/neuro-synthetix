@@ -36,7 +36,9 @@ async def speech_to_text(audio_bytes: bytes, lang: str = "hi",
     if not settings.sarvam_api_key or not audio_bytes:
         return None
     code = LANG_CODE.get(lang, "hi-IN")
-    ct = "audio/webm" if filename.endswith(".webm") else "audio/wav"
+    ext = filename.rsplit(".", 1)[-1].lower()
+    ct = {"webm": "audio/webm", "m4a": "audio/mp4", "mp3": "audio/mpeg",
+          "mp4": "audio/mp4", "ogg": "audio/ogg"}.get(ext, "audio/wav")
     try:
         async with httpx.AsyncClient(timeout=60) as cl:
             r = await cl.post(STT_URL,
