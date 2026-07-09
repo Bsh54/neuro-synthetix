@@ -11,9 +11,9 @@ import * as FileSystem from 'expo-file-system/legacy';
 const API = 'https://neuro.shadrakbessanh.me';
 
 const T = {
-  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', conf: 'पात्रता विश्वास', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', heroLead: 'हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। हम आवाज़ से, कुछ ही सेकंड में यह पुल बनाते हैं।', howTitle: 'यह कैसे काम करता है', disc: 'मार्गदर्शन उपकरण, निदान नहीं।', code: 'hi-IN' },
-  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', conf: 'Eligibility confidence', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', heroLead: 'Thousands of patients search for treatment. Thousands of trials search for patients. We build the bridge — by voice, in seconds.', howTitle: 'How it works', disc: 'Orientation tool, not a diagnosis.', code: 'en-IN' },
-  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', conf: 'Confiance eligibilite', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', heroLead: 'Des milliers de patients cherchent un traitement. Des milliers d\'essais cherchent des patients. Nous construisons le pont, a la voix, en quelques secondes.', howTitle: 'Comment ca marche', disc: 'Outil d\'orientation, pas un diagnostic.', code: 'fr-FR' },
+  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', conf: 'पात्रता विश्वास', voiceTap: 'बोलने के लिए माइक दबाएँ', speaking: 'बोल रहा हूँ...', toText: 'लिखने के लिए', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', heroLead: 'हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। हम आवाज़ से, कुछ ही सेकंड में यह पुल बनाते हैं।', howTitle: 'यह कैसे काम करता है', disc: 'मार्गदर्शन उपकरण, निदान नहीं।', code: 'hi-IN' },
+  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', conf: 'Eligibility confidence', voiceTap: 'Tap the mic and speak', speaking: 'Speaking...', toText: 'Switch to typing', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', heroLead: 'Thousands of patients search for treatment. Thousands of trials search for patients. We build the bridge — by voice, in seconds.', howTitle: 'How it works', disc: 'Orientation tool, not a diagnosis.', code: 'en-IN' },
+  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', conf: 'Confiance eligibilite', voiceTap: 'Touchez le micro et parlez', speaking: 'Reponse...', toText: 'Passer a l\'ecriture', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', heroLead: 'Des milliers de patients cherchent un traitement. Des milliers d\'essais cherchent des patients. Nous construisons le pont, a la voix, en quelques secondes.', howTitle: 'Comment ca marche', disc: 'Outil d\'orientation, pas un diagnostic.', code: 'fr-FR' },
 };
 
 const CRIT_IC = { met: '✓', unmet: '✗', unknown: '?', na: '–' };
@@ -62,8 +62,7 @@ export default function App() {
     setMode(m);
     setMessages([{ role: 'bot', text: t('greet') }]);
     setHistory([{ role: 'assistant', content: T.en.greet }]);
-    setStep('chat');
-    if (m === 'speak') setTimeout(record, 400);
+    setStep(m === 'speak' ? 'voice' : 'chat');
   };
 
   const scroll = () => setTimeout(() => scroller.current && scroller.current.scrollToEnd({ animated: true }), 60);
@@ -180,6 +179,49 @@ export default function App() {
     );
   }
 
+  /* ----- voice mode ----- */
+  if (step === 'voice') {
+    const lastBot = [...messages].reverse().find((m) => m.role === 'bot');
+    const status = recording ? t('listening') : busy ? t('thinking') : t('voiceTap');
+    return (
+      <SafeAreaView style={s.app}>
+        <StatusBar style="dark" />
+        <LangBar />
+        <ScrollView contentContainerStyle={{ padding: 22, alignItems: 'center', paddingBottom: 30 }}>
+          <Text style={s.vStatus}>{status}</Text>
+          <TouchableOpacity style={[s.vMic, recording && s.vMicOn]} onPress={record} disabled={busy}>
+            {busy ? <ActivityIndicator color="#fff" size="large" />
+              : <Text style={{ fontSize: 52 }}>{recording ? '■' : '🎙️'}</Text>}
+          </TouchableOpacity>
+          {lastBot ? (
+            <View style={s.vReplyBox}>
+              <Text style={s.vReply}>{lastBot.text}</Text>
+              {lastBot.text ? (
+                <TouchableOpacity style={s.vSpeak} onPress={() => speak(lastBot.text)}>
+                  <Text style={{ fontSize: 15 }}>🔊</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          ) : null}
+          {(lastBot && lastBot.trials ? lastBot.trials : []).slice(0, 4).map((x, j) => (
+            <View key={j} style={[s.trial, { width: '100%' }]}>
+              <Text style={s.trialTitle}>{x.title || x.nct_id}</Text>
+              {x.reason ? <Text style={s.trialWhy}>{x.reason}</Text> : null}
+              {typeof x.confidence === 'number' ? (
+                <Text style={[s.confVal, { color: confColor(x.confidence), marginTop: 6 }]}>{t('conf')}: {x.confidence}%</Text>
+              ) : null}
+              <Text style={s.trialMeta}>{x.condition} · {x.nct_id}</Text>
+              {x.url ? <Text style={s.link} onPress={() => Linking.openURL(x.url)}>{t('open')} →</Text> : null}
+            </View>
+          ))}
+          <TouchableOpacity style={{ marginTop: 22 }} onPress={() => setStep('chat')}>
+            <Text style={s.learn}>⌨️  {t('toText')}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   /* ----- chat ----- */
   return (
     <SafeAreaView style={s.app}>
@@ -250,6 +292,12 @@ const s = StyleSheet.create({
   app: { flex: 1, backgroundColor: '#FAF7F2', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   splash: { flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   splashImg: { width: 240, height: 240 },
+  vStatus: { fontSize: 16, fontWeight: '700', color: '#4A5560', marginTop: 24, marginBottom: 26, textAlign: 'center' },
+  vMic: { width: 128, height: 128, borderRadius: 64, backgroundColor: '#0E7C66', alignItems: 'center', justifyContent: 'center', shadowColor: '#0E7C66', shadowOpacity: 0.35, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 8 },
+  vMicOn: { backgroundColor: '#E4573B', shadowColor: '#E4573B' },
+  vReplyBox: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E6DFD4', borderRadius: 16, padding: 15, marginTop: 30, width: '100%' },
+  vReply: { fontSize: 15.5, color: '#14181C', lineHeight: 22 },
+  vSpeak: { alignSelf: 'flex-start', marginTop: 10, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10, backgroundColor: '#EFEAE0' },
   center: { flex: 1, backgroundColor: '#FAF7F2', alignItems: 'center', justifyContent: 'center', padding: 26, paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   logo: { width: 54, height: 54, borderRadius: 16, backgroundColor: '#0E7C66', marginBottom: 16 },
   h1: { fontSize: 24, fontWeight: '700', color: '#14181C', textAlign: 'center' },
