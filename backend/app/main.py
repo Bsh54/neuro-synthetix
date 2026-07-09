@@ -321,29 +321,24 @@ async def chat_ep(req: ChatRequest) -> dict:
 
 
 async def _translate_trials(trials: list, lang: str) -> None:
-    """Traduit en place les raisons et libelles de criteres vers la langue du patient,
-    en un seul appel groupe (robuste : si le decoupage ne correspond pas, on garde l'anglais)."""
-    segs: list[str] = []
-    slots: list = []  # (trial_index, 'reason') ou (trial_index, 'crit', crit_index)
+    """Traduit en place les raisons et libelles de criteres vers la langue du patient.
+    Chaque segment est traduit individuellement, en parallele (fiable, pas de decoupage)."""
+    import asyncio
+    slots: list = []   # (trial_index, 'reason'|'crit', crit_index|None, text)
     for i, t in enumerate(trials):
         if t.get("reason"):
-            segs.append(t["reason"]); slots.append((i, "reason", None))
+            slots.append((i, "reason", None, t["reason"]))
         for j, cr in enumerate(t.get("criteria_match") or []):
             if cr.get("label"):
-                segs.append(cr["label"]); slots.append((i, "crit", j))
-    if not segs:
+                slots.append((i, "crit", j, cr["label"]))
+    if not slots:
         return
-    SEP = "\n@@@\n"
-    joined = SEP.join(segs)
-    out = await tr.translate(joined, "en", lang)
-    if not out:
-        return
-    parts = [p.strip() for p in out.split("@@@")]
-    if len(parts) != len(segs):
-        parts = [p.strip() for p in out.split("\n") if p.strip()]
-    if len(parts) != len(segs):
-        return  # decoupage incertain : on garde l'anglais plutot que de melanger
-    for (i, kind, j), tx in zip(slots, parts):
+    results = await asyncio.gather(
+        *[tr.translate(s[3], "en", lang) for s in slots], return_exceptions=True
+    )
+    for (i, kind, j, _orig), tx in zip(slots, results):
+        if not isinstance(tx, str) or not tx.strip():
+            continue   # echec de ce segment : on garde l'anglais pour celui-la
         tx = deepseek.clean(tx)
         if kind == "reason":
             trials[i]["reason"] = tx

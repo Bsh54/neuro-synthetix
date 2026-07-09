@@ -172,7 +172,7 @@ async def rerank(request_text: str, candidates: list[dict],
 ELIG_SYSTEM = """You assess, for a patient, whether they might be eligible for each clinical trial, using ONLY the trial's eligibility text. This is orientation, never a diagnosis.
 
 For EACH trial you are given (with its id, title and eligibility text):
-- Pick the 3 or 4 MOST decisive eligibility points (key inclusion or exclusion criteria, plus age or sex when they matter).
+- Pick the 3 MOST decisive eligibility points (key inclusion or exclusion criteria, plus age or sex when they matter).
 - Rewrite each as a very short, plain-language label a non-medical person understands (max ~6 words, no jargon dump).
 - Mark each with a status, comparing to the patient profile:
     "met"     = the patient clearly satisfies it,
@@ -214,13 +214,17 @@ async def eligibility(request_text: str, patient: dict | None,
     )
     m = await complete(
         [{"role": "user", "content": payload}],
-        max_tokens=1600, lang_directive=lang_directive, system_override=ELIG_SYSTEM,
+        max_tokens=2400, lang_directive=lang_directive, system_override=ELIG_SYSTEM,
     )
     if not m:
         return {}
-    d = _parse_json(m.get("content") or "")
+    raw = m.get("content") or ""
+    d = _parse_json(raw)
+    trials_out = (d or {}).get("trials") if isinstance(d, dict) else None
+    if not trials_out:
+        trials_out = _salvage_elig(raw)   # recuperation si JSON tronque
     out: dict = {}
-    for t in (d or {}).get("trials", []) if isinstance(d, dict) else []:
+    for t in trials_out or []:
         tid = t.get("id")
         if not tid:
             continue
@@ -266,6 +270,23 @@ async def extract_terms(convo_text: str) -> dict:
         "symptoms": [str(s).strip() for s in (d.get("symptoms") or []) if str(s).strip()][:6],
         "location": (d.get("location") or "").strip(),
     }
+
+
+def _salvage_elig(text: str) -> list:
+    """Recupere les objets trial complets d'une reponse d'eligibilite tronquee."""
+    import json as _json
+    out = []
+    # chaque trial : {"id":"...","confidence":N,"criteria":[ ... ]}  (criteria = liste plate)
+    for tm in re.finditer(
+        r'\{\s*"id"\s*:\s*"([^"]+)"\s*,\s*"confidence"\s*:\s*(\d+)\s*,\s*"criteria"\s*:\s*(\[[^\]]*\])',
+        text):
+        tid, conf, crit_raw = tm.group(1), tm.group(2), tm.group(3)
+        try:
+            crits = _json.loads(crit_raw)
+        except Exception:
+            crits = []
+        out.append({"id": tid, "confidence": int(conf), "criteria": crits})
+    return out
 
 
 def _parse_json(text: str) -> dict | None:
