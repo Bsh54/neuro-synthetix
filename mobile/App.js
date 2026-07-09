@@ -11,9 +11,15 @@ import * as FileSystem from 'expo-file-system/legacy';
 const API = 'https://neuro.shadrakbessanh.me';
 
 const T = {
-  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', code: 'hi-IN' },
-  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', code: 'en-IN' },
-  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', code: 'fr-FR' },
+  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', heroLead: 'हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। हम आवाज़ से, कुछ ही सेकंड में यह पुल बनाते हैं।', howTitle: 'यह कैसे काम करता है', disc: 'मार्गदर्शन उपकरण, निदान नहीं।', code: 'hi-IN' },
+  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', heroLead: 'Thousands of patients search for treatment. Thousands of trials search for patients. We build the bridge — by voice, in seconds.', howTitle: 'How it works', disc: 'Orientation tool, not a diagnosis.', code: 'en-IN' },
+  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', heroLead: 'Des milliers de patients cherchent un traitement. Des milliers d\'essais cherchent des patients. Nous construisons le pont, a la voix, en quelques secondes.', howTitle: 'Comment ca marche', disc: 'Outil d\'orientation, pas un diagnostic.', code: 'fr-FR' },
+};
+
+const STEPS = {
+  hi: [['सुनना', 'अपनी भाषा में बोलें; आवाज़ पाठ बन जाती है।'], ['विश्लेषण', 'आपके शब्दों से मुख्य लक्षण निकाले जाते हैं।'], ['मिलान', 'असली भर्ती-वाले ट्रायल खोजे और AI से पुनः क्रमबद्ध किए जाते हैं।'], ['मार्गदर्शन', 'हर परिणाम बताता है कि वह क्यों उपयुक्त है और आगे कैसे बढ़ें।']],
+  en: [['Listen', 'Speak in your language; your voice becomes text.'], ['Analyze', 'Key symptoms are pulled from your words.'], ['Match', 'Real recruiting trials are retrieved and re-ranked by AI.'], ['Guide', 'Each result explains why it fits and how to proceed.']],
+  fr: [['Ecoute', 'Parlez dans votre langue; la parole devient du texte.'], ['Analyse', 'Les symptomes cles sont extraits de vos mots.'], ['Correspondance', 'De vrais essais qui recrutent sont trouves et reclasses par IA.'], ['Guide', 'Chaque resultat explique pourquoi il convient et comment proceder.']],
 };
 
 export default function App() {
@@ -27,6 +33,19 @@ export default function App() {
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scroller = useRef(null);
   const t = (k) => (T[lang] && T[lang][k]) || T.en[k];
+
+  const LangBar = ({ showBrand = true }) => (
+    <View style={s.bar}>
+      {showBrand ? <Text style={s.brand}>Neuro-Synthetix</Text> : <View />}
+      <View style={s.langPills}>
+        {['hi', 'en', 'fr'].map((k) => (
+          <TouchableOpacity key={k} onPress={() => setLang(k)} style={[s.pill, lang === k && s.pillOn]}>
+            <Text style={[s.pillTxt, lang === k && s.pillTxtOn]}>{k.toUpperCase()}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
 
   const startChat = (mode) => {
     setMessages([{ role: 'bot', text: t('greet') }]);
@@ -107,17 +126,32 @@ export default function App() {
   /* ----- welcome screens ----- */
   if (step === 'home') {
     return (
-      <SafeAreaView style={s.center}>
+      <SafeAreaView style={s.app}>
         <StatusBar style="dark" />
-        <View style={s.logo} />
-        <Text style={s.h1}>Neuro-Synthetix</Text>
-        <Text style={[s.sub, { maxWidth: 300, textAlign: 'center', marginBottom: 30 }]}>{t('tag')}</Text>
-        <TouchableOpacity style={s.startBtn} onPress={() => setStep('lang')}>
-          <Text style={s.startTxt}>{t('begin')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={{ marginTop: 18 }} onPress={() => Linking.openURL(API)}>
-          <Text style={s.learn}>{t('learn')} →</Text>
-        </TouchableOpacity>
+        <LangBar />
+        <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 40 }}>
+          <View style={[s.logo, { marginTop: 6 }]} />
+          <Text style={s.heroTitle}>{t('tag')}</Text>
+          <Text style={s.heroLead}>{t('heroLead')}</Text>
+          <TouchableOpacity style={[s.startBtn, { alignSelf: 'flex-start', marginTop: 22 }]} onPress={() => setStep('lang')}>
+            <Text style={s.startTxt}>{t('begin')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={{ marginTop: 16 }} onPress={() => Linking.openURL(API)}>
+            <Text style={s.learn}>{t('learn')} →</Text>
+          </TouchableOpacity>
+
+          <Text style={s.howTitle}>{t('howTitle')}</Text>
+          {STEPS[lang].map(([h, p], i) => (
+            <View key={i} style={s.stepCard}>
+              <View style={s.stepNum}><Text style={s.stepNumTxt}>{i + 1}</Text></View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.stepH}>{h}</Text>
+                <Text style={s.stepP}>{p}</Text>
+              </View>
+            </View>
+          ))}
+          <Text style={s.foot}>{t('disc')}</Text>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -138,16 +172,19 @@ export default function App() {
   }
   if (step === 'mode') {
     return (
-      <SafeAreaView style={s.center}>
+      <SafeAreaView style={s.app}>
         <StatusBar style="dark" />
-        <Text style={s.h1}>{t('mode')}</Text>
-        <View style={{ flexDirection: 'row', gap: 14, marginTop: 20 }}>
-          <TouchableOpacity style={[s.modeBtn, s.modePrimary]} onPress={() => startChat('speak')}>
-            <Text style={s.modeIcon}>🎙️</Text><Text style={s.modeTxt}>{t('speak')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.modeBtn} onPress={() => startChat('write')}>
-            <Text style={s.modeIcon}>⌨️</Text><Text style={s.modeTxt}>{t('write')}</Text>
-          </TouchableOpacity>
+        <LangBar />
+        <View style={[s.center, { paddingTop: 0 }]}>
+          <Text style={s.h1}>{t('mode')}</Text>
+          <View style={{ flexDirection: 'row', gap: 14, marginTop: 20 }}>
+            <TouchableOpacity style={[s.modeBtn, s.modePrimary]} onPress={() => startChat('speak')}>
+              <Text style={s.modeIcon}>🎙️</Text><Text style={s.modeTxt}>{t('speak')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={s.modeBtn} onPress={() => startChat('write')}>
+              <Text style={s.modeIcon}>⌨️</Text><Text style={s.modeTxt}>{t('write')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </SafeAreaView>
     );
@@ -162,10 +199,7 @@ export default function App() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={0}
       >
-      <View style={s.bar}>
-        <Text style={s.brand}>Neuro-Synthetix</Text>
-        <TouchableOpacity onPress={() => setStep('lang')}><Text style={s.lang}>{lang.toUpperCase()}</Text></TouchableOpacity>
-      </View>
+      <LangBar />
       <ScrollView ref={scroller} style={s.thread} contentContainerStyle={{ padding: 16 }}
         keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         {messages.map((m, i) => (
@@ -216,8 +250,21 @@ const s = StyleSheet.create({
   startBtn: { backgroundColor: '#0E7C66', borderRadius: 16, paddingVertical: 16, paddingHorizontal: 60, marginTop: 4 },
   startTxt: { color: '#fff', fontSize: 18, fontWeight: '700', letterSpacing: 0.3 },
   learn: { color: '#0A5C4C', fontSize: 15, fontWeight: '700' },
-  bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#E6DFD4', backgroundColor: '#FAF7F2' },
-  brand: { fontWeight: '700', fontSize: 17, color: '#14181C' }, lang: { fontWeight: '700', color: '#0A5C4C' },
+  bar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#E6DFD4', backgroundColor: '#FAF7F2' },
+  brand: { fontWeight: '700', fontSize: 16, color: '#14181C' }, lang: { fontWeight: '700', color: '#0A5C4C' },
+  langPills: { flexDirection: 'row', gap: 6 },
+  pill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 9, borderWidth: 1.2, borderColor: '#DED6C8', backgroundColor: '#fff' },
+  pillOn: { backgroundColor: '#0E7C66', borderColor: '#0E7C66' },
+  pillTxt: { fontSize: 12, fontWeight: '700', color: '#6B7680' },
+  pillTxtOn: { color: '#fff' },
+  heroTitle: { fontSize: 26, fontWeight: '800', color: '#14181C', marginTop: 16, lineHeight: 32 },
+  heroLead: { fontSize: 15, color: '#4A5560', marginTop: 12, lineHeight: 22 },
+  howTitle: { fontSize: 13, fontWeight: '700', letterSpacing: 1.4, color: '#0A5C4C', marginTop: 36, marginBottom: 6, textTransform: 'uppercase' },
+  stepCard: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: '#fff', borderWidth: 1, borderColor: '#E6DFD4', borderRadius: 14, padding: 14, marginTop: 10 },
+  stepNum: { width: 30, height: 30, borderRadius: 9, backgroundColor: '#E8F3EF', alignItems: 'center', justifyContent: 'center' },
+  stepNumTxt: { color: '#0A5C4C', fontWeight: '800', fontSize: 15 },
+  stepH: { fontWeight: '700', fontSize: 15, color: '#14181C' },
+  stepP: { fontSize: 13.5, color: '#6B7680', marginTop: 3, lineHeight: 19 },
   thread: { flex: 1 },
   row: { marginBottom: 16 }, rowUser: { alignItems: 'flex-end' }, rowBot: { alignItems: 'flex-start' },
   bubble: { maxWidth: '86%', padding: 12, borderRadius: 16 },
