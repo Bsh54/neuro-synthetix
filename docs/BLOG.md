@@ -137,14 +137,14 @@ The same assistant runs as a native mobile app built with Expo / React Native â€
 backend, same voice, same real trials. Install **Expo Go**, then scan this QR code
 (or open the link inside Expo Go):
 
-![Scan with Expo Go](https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=exp://qzkabn0-bsh54-8081.exp.direct)
+![Scan with Expo Go](https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=8&data=exp://ncarnci-bsh54-8081.exp.direct)
 
-`exp://qzkabn0-bsh54-8081.exp.direct`
+`exp://ncarnci-bsh54-8081.exp.direct`
 
 ### Try it
 
 - Live web: https://neuro.shadrakbessanh.me
-- Mobile (Expo Go): `exp://qzkabn0-bsh54-8081.exp.direct`
+- Mobile (Expo Go): `exp://ncarnci-bsh54-8081.exp.direct`
 - Code: (colle ici le lien de ton repo GitHub)
 
 Neuro-Synthetix is an orientation tool. It does not provide a medical diagnosis and does

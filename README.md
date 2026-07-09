@@ -17,7 +17,7 @@ scan the QR code below (or open the link inside Expo Go):
 <img src="mobile/expo-qr.png" width="200" alt="Scan with Expo Go" />
 
 ```
-exp://qzkabn0-bsh54-8081.exp.direct
+exp://ncarnci-bsh54-8081.exp.direct
 ```
 
 The app hosts the same backend, so voice, AI search and real trials work out of the box.

@@ -18,7 +18,7 @@ Install **Expo Go** on your phone and scan this QR code, or open the link inside
 <img src="expo-qr.png" width="220" alt="Scan with Expo Go" />
 
 ```
-exp://qzkabn0-bsh54-8081.exp.direct
+exp://ncarnci-bsh54-8081.exp.direct
 ```
 
 The app is hosted on the project VPS, so the link stays public as long as the server runs.

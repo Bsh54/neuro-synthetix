@@ -3,7 +3,7 @@
 Open in **Expo Go** (Android / iOS):
 
 ```
-exp://qzkabn0-bsh54-8081.exp.direct
+exp://ncarnci-bsh54-8081.exp.direct
 ```
 
 QR code: `expo-qr.png` (scan it with the Expo Go app).
