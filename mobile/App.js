@@ -35,6 +35,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [recording, setRecording] = useState(false);
   const [mode, setMode] = useState('write');       // 'speak' | 'write' — decides auto voice
+  const [voiceGreeted, setVoiceGreeted] = useState(false);
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scroller = useRef(null);
   const t = (k) => (T[lang] && T[lang][k]) || T.en[k];
@@ -44,6 +45,14 @@ export default function App() {
     const id = setTimeout(() => setStep('lang'), 1600);
     return () => clearTimeout(id);
   }, [step]);
+
+  // A l'arrivee sur l'ecran audio : on pose une premiere question a voix haute, dans la langue
+  useEffect(() => {
+    if (step !== 'voice' || voiceGreeted) return;
+    setVoiceGreeted(true);
+    const id = setTimeout(() => speak(t('greet')), 500);
+    return () => clearTimeout(id);
+  }, [step, voiceGreeted]);
 
   const LangBar = ({ showBrand = true }) => (
     <View style={s.bar}>
@@ -60,6 +69,7 @@ export default function App() {
 
   const startChat = (m) => {
     setMode(m);
+    setVoiceGreeted(false);
     setMessages([{ role: 'bot', text: t('greet') }]);
     setHistory([{ role: 'assistant', content: T.en.greet }]);
     setStep(m === 'speak' ? 'voice' : 'chat');
@@ -134,6 +144,35 @@ export default function App() {
     } catch (e) { setBusy(false); }
   }
 
+  // Push-to-talk : appuyer = enregistre, relacher = envoie pour traitement
+  async function pttStart() {
+    if (busy) return;
+    try {
+      const perm = await AudioModule.requestRecordingPermissionsAsync();
+      if (!perm.granted) return;
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
+      setRecording(true);
+    } catch (e) { setRecording(false); }
+  }
+  async function pttStop() {
+    if (!recording) return;
+    try {
+      setRecording(false);
+      await audioRecorder.stop();
+      const uri = audioRecorder.uri;
+      if (!uri) return;
+      setBusy(true);
+      const form = new FormData();
+      form.append('file', { uri, name: 'audio.m4a', type: 'audio/m4a' });
+      const r = await fetch(API + '/stt?lang=' + lang, { method: 'POST', body: form });
+      const d = await r.json();
+      setBusy(false);
+      if (d && d.text && d.text.trim()) send(d.text.trim());
+    } catch (e) { setBusy(false); }
+  }
+
   /* ----- welcome screens ----- */
   if (step === 'splash') {
     return (
@@ -181,43 +220,54 @@ export default function App() {
 
   /* ----- voice mode ----- */
   if (step === 'voice') {
-    const lastBot = [...messages].reverse().find((m) => m.role === 'bot');
+    const hasExchange = messages.some((m) => m.role === 'user');
+    const lastBot = hasExchange ? [...messages].reverse().find((m) => m.role === 'bot') : null;
     const status = recording ? t('listening') : busy ? t('thinking') : t('voiceTap');
     return (
       <SafeAreaView style={s.app}>
         <StatusBar style="dark" />
         <LangBar />
-        <ScrollView contentContainerStyle={{ padding: 22, alignItems: 'center', paddingBottom: 30 }}>
+        {/* micro centre */}
+        <View style={s.vCenter}>
           <Text style={s.vStatus}>{status}</Text>
-          <TouchableOpacity style={[s.vMic, recording && s.vMicOn]} onPress={record} disabled={busy}>
+          <TouchableOpacity
+            style={[s.vMic, recording && s.vMicOn]}
+            activeOpacity={0.9}
+            onPressIn={pttStart}
+            onPressOut={pttStop}
+            disabled={busy}
+          >
             {busy ? <ActivityIndicator color="#fff" size="large" />
-              : <Text style={{ fontSize: 52 }}>{recording ? '■' : '🎙️'}</Text>}
+              : <Text style={{ fontSize: 52 }}>🎙️</Text>}
           </TouchableOpacity>
-          {lastBot ? (
+          <Text style={s.vHint}>{t('voiceTap')}</Text>
+        </View>
+        {/* resultats (uniquement apres un vrai echange) */}
+        {lastBot ? (
+          <ScrollView style={{ maxHeight: 260 }} contentContainerStyle={{ padding: 18, paddingTop: 0 }}>
             <View style={s.vReplyBox}>
               <Text style={s.vReply}>{lastBot.text}</Text>
-              {lastBot.text ? (
-                <TouchableOpacity style={s.vSpeak} onPress={() => speak(lastBot.text)}>
-                  <Text style={{ fontSize: 15 }}>🔊</Text>
-                </TouchableOpacity>
-              ) : null}
+              <TouchableOpacity style={s.vSpeak} onPress={() => speak(lastBot.text)}>
+                <Text style={{ fontSize: 15 }}>🔊</Text>
+              </TouchableOpacity>
             </View>
-          ) : null}
-          {(lastBot && lastBot.trials ? lastBot.trials : []).slice(0, 4).map((x, j) => (
-            <View key={j} style={[s.trial, { width: '100%' }]}>
-              <Text style={s.trialTitle}>{x.title || x.nct_id}</Text>
-              {x.reason ? <Text style={s.trialWhy}>{x.reason}</Text> : null}
-              {typeof x.confidence === 'number' ? (
-                <Text style={[s.confVal, { color: confColor(x.confidence), marginTop: 6 }]}>{t('conf')}: {x.confidence}%</Text>
-              ) : null}
-              <Text style={s.trialMeta}>{x.condition} · {x.nct_id}</Text>
-              {x.url ? <Text style={s.link} onPress={() => Linking.openURL(x.url)}>{t('open')} →</Text> : null}
-            </View>
-          ))}
-          <TouchableOpacity style={{ marginTop: 22 }} onPress={() => setStep('chat')}>
-            <Text style={s.learn}>⌨️  {t('toText')}</Text>
-          </TouchableOpacity>
-        </ScrollView>
+            {(lastBot.trials || []).slice(0, 4).map((x, j) => (
+              <View key={j} style={[s.trial, { width: '100%' }]}>
+                <Text style={s.trialTitle}>{x.title || x.nct_id}</Text>
+                {x.reason ? <Text style={s.trialWhy}>{x.reason}</Text> : null}
+                {typeof x.confidence === 'number' ? (
+                  <Text style={[s.confVal, { color: confColor(x.confidence), marginTop: 6 }]}>{t('conf')}: {x.confidence}%</Text>
+                ) : null}
+                <Text style={s.trialMeta}>{x.condition} · {x.nct_id}</Text>
+                {x.url ? <Text style={s.link} onPress={() => Linking.openURL(x.url)}>{t('open')} →</Text> : null}
+              </View>
+            ))}
+          </ScrollView>
+        ) : null}
+        {/* bouton tout en bas */}
+        <TouchableOpacity style={s.vBottom} onPress={() => setStep('chat')}>
+          <Text style={s.learn}>⌨️  {t('toText')}</Text>
+        </TouchableOpacity>
       </SafeAreaView>
     );
   }
@@ -292,7 +342,10 @@ const s = StyleSheet.create({
   app: { flex: 1, backgroundColor: '#FAF7F2', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   splash: { flex: 1, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' },
   splashImg: { width: 240, height: 240 },
-  vStatus: { fontSize: 16, fontWeight: '700', color: '#4A5560', marginTop: 24, marginBottom: 26, textAlign: 'center' },
+  vCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 22 },
+  vHint: { marginTop: 20, fontSize: 13, color: '#8A8577', textAlign: 'center' },
+  vBottom: { paddingVertical: 16, alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E6DFD4' },
+  vStatus: { fontSize: 17, fontWeight: '700', color: '#4A5560', marginBottom: 30, textAlign: 'center' },
   vMic: { width: 128, height: 128, borderRadius: 64, backgroundColor: '#0E7C66', alignItems: 'center', justifyContent: 'center', shadowColor: '#0E7C66', shadowOpacity: 0.35, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 8 },
   vMicOn: { backgroundColor: '#E4573B', shadowColor: '#E4573B' },
   vReplyBox: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E6DFD4', borderRadius: 16, padding: 15, marginTop: 30, width: '100%' },
