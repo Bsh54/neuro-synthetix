@@ -27,7 +27,7 @@ const STEPS = {
 };
 
 export default function App() {
-  const [step, setStep] = useState('home');      // home -> lang -> mode -> chat
+  const [step, setStep] = useState('splash');    // splash -> lang -> mode -> chat
   const [lang, setLang] = useState('hi');
   const [messages, setMessages] = useState([]);
   const [history, setHistory] = useState([]);     // english context for the model
@@ -38,6 +38,12 @@ export default function App() {
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scroller = useRef(null);
   const t = (k) => (T[lang] && T[lang][k]) || T.en[k];
+
+  useEffect(() => {
+    if (step !== 'splash') return;
+    const id = setTimeout(() => setStep('lang'), 1600);
+    return () => clearTimeout(id);
+  }, [step]);
 
   const LangBar = ({ showBrand = true }) => (
     <View style={s.bar}>
@@ -130,34 +136,13 @@ export default function App() {
   }
 
   /* ----- welcome screens ----- */
-  if (step === 'home') {
+  if (step === 'splash') {
     return (
-      <SafeAreaView style={s.app}>
-        <StatusBar style="dark" />
-        <LangBar />
-        <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 40 }}>
-          <View style={[s.logo, { marginTop: 6 }]} />
-          <Text style={s.heroTitle}>{t('tag')}</Text>
-          <Text style={s.heroLead}>{t('heroLead')}</Text>
-          <TouchableOpacity style={[s.startBtn, { alignSelf: 'flex-start', marginTop: 22 }]} onPress={() => setStep('lang')}>
-            <Text style={s.startTxt}>{t('begin')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={{ marginTop: 16 }} onPress={() => Linking.openURL(API)}>
-            <Text style={s.learn}>{t('learn')} →</Text>
-          </TouchableOpacity>
-
-          <Text style={s.howTitle}>{t('howTitle')}</Text>
-          {STEPS[lang].map(([h, p], i) => (
-            <View key={i} style={s.stepCard}>
-              <View style={s.stepNum}><Text style={s.stepNumTxt}>{i + 1}</Text></View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.stepH}>{h}</Text>
-                <Text style={s.stepP}>{p}</Text>
-              </View>
-            </View>
-          ))}
-          <Text style={s.foot}>{t('disc')}</Text>
-        </ScrollView>
+      <SafeAreaView style={s.splash}>
+        <StatusBar style="light" />
+        <View style={s.splashLogo} />
+        <Text style={s.splashName}>Neuro-Synthetix</Text>
+        <ActivityIndicator color="#EAF6F1" style={{ marginTop: 26 }} />
       </SafeAreaView>
     );
   }
@@ -264,6 +249,9 @@ export default function App() {
 
 const s = StyleSheet.create({
   app: { flex: 1, backgroundColor: '#FAF7F2', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
+  splash: { flex: 1, backgroundColor: '#0E7C66', alignItems: 'center', justifyContent: 'center' },
+  splashLogo: { width: 74, height: 74, borderRadius: 22, backgroundColor: '#EAF6F1' },
+  splashName: { color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: 0.4, marginTop: 18 },
   center: { flex: 1, backgroundColor: '#FAF7F2', alignItems: 'center', justifyContent: 'center', padding: 26, paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   logo: { width: 54, height: 54, borderRadius: 16, backgroundColor: '#0E7C66', marginBottom: 16 },
   h1: { fontSize: 24, fontWeight: '700', color: '#14181C', textAlign: 'center' },
