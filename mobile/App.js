@@ -4,8 +4,8 @@ import {
   ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Linking,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
+import { useAudioRecorder, RecordingPresets, AudioModule, setAudioModeAsync, createAudioPlayer } from 'expo-audio';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const API = 'https://neuro.shadrakbessanh.me';
 
@@ -22,7 +22,8 @@ export default function App() {
   const [history, setHistory] = useState([]);     // english context for the model
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
-  const [recording, setRecording] = useState(null);
+  const [recording, setRecording] = useState(false);
+  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scroller = useRef(null);
   const t = (k) => (T[lang] && T[lang][k]) || T.en[k];
 
@@ -68,28 +69,30 @@ export default function App() {
       if (!d || !d.audio) return;
       const path = FileSystem.cacheDirectory + 'reply.wav';
       await FileSystem.writeAsStringAsync(path, d.audio, { encoding: FileSystem.EncodingType.Base64 });
-      const { sound } = await Audio.Sound.createAsync({ uri: path });
-      await sound.playAsync();
+      const player = createAudioPlayer(path);
+      player.play();
     } catch (e) { /* silencieux */ }
   }
 
   async function record() {
     try {
       if (recording) { await stopRecord(); return; }
-      const perm = await Audio.requestPermissionsAsync();
+      const perm = await AudioModule.requestRecordingPermissionsAsync();
       if (!perm.granted) return;
-      await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
-      const { recording: rec } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
-      setRecording(rec);
-    } catch (e) { setRecording(null); }
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await audioRecorder.prepareToRecordAsync();
+      audioRecorder.record();
+      setRecording(true);
+    } catch (e) { setRecording(false); }
   }
 
   async function stopRecord() {
     try {
-      const rec = recording; setRecording(null);
-      if (!rec) return;
-      await rec.stopAndUnloadAsync();
-      const uri = rec.getURI();
+      if (!recording) return;
+      setRecording(false);
+      await audioRecorder.stop();
+      const uri = audioRecorder.uri;
+      if (!uri) return;
       setBusy(true);
       const form = new FormData();
       form.append('file', { uri, name: 'audio.m4a', type: 'audio/m4a' });
