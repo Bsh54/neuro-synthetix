@@ -96,6 +96,7 @@ def _index() -> list[dict]:
                 "min_age": elig.get("min_age", ""),
                 "max_age": elig.get("max_age", ""),
                 "sex": elig.get("sex", ""),
+                "criteria": (elig.get("criteria", "") or "")[:900],
             },
         })
     return idx

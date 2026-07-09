@@ -166,6 +166,78 @@ async def rerank(request_text: str, candidates: list[dict],
     return _parse_json(m.get("content") or "")
 
 
+ELIG_SYSTEM = """You assess, for a patient, whether they might be eligible for each clinical trial, using ONLY the trial's eligibility text. This is orientation, never a diagnosis.
+
+For EACH trial you are given (with its id, title and eligibility text):
+- Pick the 3 or 4 MOST decisive eligibility points (key inclusion or exclusion criteria, plus age or sex when they matter).
+- Rewrite each as a very short, plain-language label a non-medical person understands (max ~6 words, no jargon dump).
+- Mark each with a status, comparing to the patient profile:
+    "met"     = the patient clearly satisfies it,
+    "unmet"   = the patient clearly does NOT satisfy it,
+    "unknown" = we do not have this information about the patient (most common),
+    "na"      = not applicable to this patient.
+- Give an overall confidence from 0 to 100 that this patient could be eligible (higher = more of the key points look met or plausible; lower if something looks unmet).
+
+Hard rules:
+- Use ONLY the ids given. Do not invent criteria that are not in the eligibility text.
+- Be honest: if the eligibility text is thin, use "unknown" and a modest confidence.
+- Output STRICT JSON only, no markdown, no stars, no extra text:
+{"trials": [{"id": "...", "confidence": 70, "criteria": [{"label": "Adults 18 to 65", "status": "met"}, {"label": "Type 2 diabetes", "status": "unknown"}]}]}
+"""
+
+
+async def eligibility(request_text: str, patient: dict | None,
+                      trials: list[dict],
+                      lang_directive: str | None = None) -> dict:
+    """Analyse d'eligibilite par critere sur les essais deja choisis.
+    Retourne {id: {"confidence": int, "criteria": [{"label","status"}]}}."""
+    import json as _json
+    if not trials:
+        return {}
+    prof = []
+    if patient:
+        if patient.get("age") not in (None, ""):
+            prof.append(f"age {patient['age']}")
+        if patient.get("sex"):
+            prof.append(str(patient["sex"]))
+    profile = ", ".join(prof) if prof else "unknown"
+    slim = [{"id": t.get("nct_id") or t.get("id"),
+             "title": (t.get("title") or "")[:120],
+             "eligibility": (t.get("criteria") or "")[:900]} for t in trials]
+    payload = (
+        "Patient profile: " + profile +
+        "\n\nWhat the patient is looking for:\n" + (request_text or "").strip()[:400] +
+        "\n\nTrials to assess:\n" + _json.dumps(slim, ensure_ascii=False)
+    )
+    m = await complete(
+        [{"role": "user", "content": payload}],
+        max_tokens=1600, lang_directive=lang_directive, system_override=ELIG_SYSTEM,
+    )
+    if not m:
+        return {}
+    d = _parse_json(m.get("content") or "")
+    out: dict = {}
+    for t in (d or {}).get("trials", []) if isinstance(d, dict) else []:
+        tid = t.get("id")
+        if not tid:
+            continue
+        crits = []
+        for cr in (t.get("criteria") or [])[:4]:
+            lab = clean(str(cr.get("label") or "")).strip()
+            st = str(cr.get("status") or "unknown").lower().strip()
+            if st not in ("met", "unmet", "unknown", "na"):
+                st = "unknown"
+            if lab:
+                crits.append({"label": lab[:60], "status": st})
+        conf = t.get("confidence")
+        try:
+            conf = max(0, min(100, int(conf)))
+        except Exception:
+            conf = None
+        out[tid] = {"confidence": conf, "criteria": crits}
+    return out
+
+
 def _parse_json(text: str) -> dict | None:
     """Extrait un objet JSON {intro, picks} d'une reponse, tolerant."""
     import json as _json

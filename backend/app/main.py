@@ -246,6 +246,17 @@ async def chat_ep(req: ChatRequest) -> dict:
                 chosen.append(cc)
 
         if chosen:
+            # Analyse d'eligibilite par critere + confiance sur les essais retenus (2e passage cible)
+            try:
+                elig = await deepseek.eligibility(req_text, patient, chosen, lang_directive=directive)
+            except Exception:
+                elig = {}
+            for cc in chosen:
+                e = elig.get(cc.get("nct_id")) or {}
+                if e.get("criteria"):
+                    cc["criteria_match"] = e["criteria"]
+                if e.get("confidence") is not None:
+                    cc["confidence"] = e["confidence"]
             trials = chosen
             visible = deepseek.clean((rr or {}).get("intro") or "")
         elif rr is not None and not (rr or {}).get("picks"):

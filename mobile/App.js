@@ -11,10 +11,14 @@ import * as FileSystem from 'expo-file-system/legacy';
 const API = 'https://neuro.shadrakbessanh.me';
 
 const T = {
-  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', heroLead: 'हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। हम आवाज़ से, कुछ ही सेकंड में यह पुल बनाते हैं।', howTitle: 'यह कैसे काम करता है', disc: 'मार्गदर्शन उपकरण, निदान नहीं।', code: 'hi-IN' },
-  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', heroLead: 'Thousands of patients search for treatment. Thousands of trials search for patients. We build the bridge — by voice, in seconds.', howTitle: 'How it works', disc: 'Orientation tool, not a diagnosis.', code: 'en-IN' },
-  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', heroLead: 'Des milliers de patients cherchent un traitement. Des milliers d\'essais cherchent des patients. Nous construisons le pont, a la voix, en quelques secondes.', howTitle: 'Comment ca marche', disc: 'Outil d\'orientation, pas un diagnostic.', code: 'fr-FR' },
+  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', conf: 'पात्रता विश्वास', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', heroLead: 'हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। हम आवाज़ से, कुछ ही सेकंड में यह पुल बनाते हैं।', howTitle: 'यह कैसे काम करता है', disc: 'मार्गदर्शन उपकरण, निदान नहीं।', code: 'hi-IN' },
+  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', conf: 'Eligibility confidence', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', heroLead: 'Thousands of patients search for treatment. Thousands of trials search for patients. We build the bridge — by voice, in seconds.', howTitle: 'How it works', disc: 'Orientation tool, not a diagnosis.', code: 'en-IN' },
+  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', conf: 'Confiance eligibilite', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', heroLead: 'Des milliers de patients cherchent un traitement. Des milliers d\'essais cherchent des patients. Nous construisons le pont, a la voix, en quelques secondes.', howTitle: 'Comment ca marche', disc: 'Outil d\'orientation, pas un diagnostic.', code: 'fr-FR' },
 };
+
+const CRIT_IC = { met: '✓', unmet: '✗', unknown: '?', na: '–' };
+const confColor = (c) => (c >= 66 ? '#0E7C66' : c >= 40 ? '#C77D2E' : '#E4573B');
+const critColor = (st) => (st === 'met' ? '#0E7C66' : st === 'unmet' ? '#E4573B' : '#8A8577');
 
 const STEPS = {
   hi: [['सुनना', 'अपनी भाषा में बोलें; आवाज़ पाठ बन जाती है।'], ['विश्लेषण', 'आपके शब्दों से मुख्य लक्षण निकाले जाते हैं।'], ['मिलान', 'असली भर्ती-वाले ट्रायल खोजे और AI से पुनः क्रमबद्ध किए जाते हैं।'], ['मार्गदर्शन', 'हर परिणाम बताता है कि वह क्यों उपयुक्त है और आगे कैसे बढ़ें।']],
@@ -218,6 +222,21 @@ export default function App() {
               <View key={j} style={s.trial}>
                 <Text style={s.trialTitle}>{x.title || x.nct_id}</Text>
                 {x.reason ? <Text style={s.trialWhy}>{x.reason}</Text> : null}
+                {typeof x.confidence === 'number' ? (
+                  <View style={{ marginTop: 8 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                      <Text style={s.confLab}>{t('conf')}</Text>
+                      <Text style={[s.confVal, { color: confColor(x.confidence) }]}>{x.confidence}%</Text>
+                    </View>
+                    <View style={s.confBar}><View style={{ height: 6, borderRadius: 5, width: (x.confidence + '%'), backgroundColor: confColor(x.confidence) }} /></View>
+                  </View>
+                ) : null}
+                {(x.criteria_match || []).map((cr, k) => (
+                  <View key={k} style={s.critRow}>
+                    <Text style={[s.critIc, { color: critColor(cr.status) }]}>{CRIT_IC[cr.status] || '?'}</Text>
+                    <Text style={s.critLab}>{cr.label}</Text>
+                  </View>
+                ))}
                 <Text style={s.trialMeta}>{x.condition} · {x.nct_id}</Text>
                 {(x.hospitals || [])[0] && x.hospitals[0].name ? (
                   <Text style={s.trialMeta}>{x.hospitals[0].name}{x.hospitals[0].country ? ', ' + x.hospitals[0].country : ''}</Text>
@@ -283,6 +302,12 @@ const s = StyleSheet.create({
   trial: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E6DFD4', borderLeftWidth: 4, borderLeftColor: '#0E7C66', borderRadius: 12, padding: 12, marginTop: 8, width: '96%' },
   trialTitle: { fontWeight: '700', color: '#14181C', fontSize: 14 },
   trialWhy: { color: '#0A5C4C', fontSize: 13, marginTop: 3 },
+  confLab: { fontSize: 11, fontWeight: '700', letterSpacing: 0.4, color: '#8A8577', textTransform: 'uppercase' },
+  confVal: { fontSize: 12, fontWeight: '800' },
+  confBar: { height: 6, borderRadius: 5, backgroundColor: '#EDE6DA', overflow: 'hidden', marginTop: 3 },
+  critRow: { flexDirection: 'row', gap: 7, alignItems: 'flex-start', marginTop: 4 },
+  critIc: { fontSize: 13, fontWeight: '800', width: 13, textAlign: 'center' },
+  critLab: { flex: 1, fontSize: 13, color: '#4A5560', lineHeight: 18 },
   trialMeta: { color: '#6B7680', fontSize: 12, marginTop: 3 },
   link: { color: '#0A5C4C', fontWeight: '700', marginTop: 8, fontSize: 13 },
   composer: { flexDirection: 'row', alignItems: 'flex-end', padding: 12, gap: 8, borderTopWidth: 1, borderTopColor: '#E6DFD4', backgroundColor: '#FAF7F2' },

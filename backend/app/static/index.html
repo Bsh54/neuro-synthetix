@@ -85,6 +85,15 @@
   .meta{color:var(--muted);font-size:.85rem;margin-top:3px}.meta b{color:var(--ink-soft);font-family:'Space Mono';font-size:.76rem}
   .disc{font-size:.8rem;color:var(--amber);margin-top:8px}
   .trial .elig{font-size:.82rem;color:var(--amber);margin-top:5px}
+  .trial .matchb{margin-top:8px}
+  .trial .confrow{display:flex;justify-content:space-between;align-items:center;font-family:'Space Mono';font-size:.72rem;letter-spacing:.04em}
+  .trial .conflab{color:var(--ink-soft);text-transform:uppercase}
+  .trial .confval{font-weight:700}
+  .trial .confbar{height:6px;border-radius:5px;background:#EDE6DA;overflow:hidden;margin-top:3px}
+  .trial .confbar i{display:block;height:100%;border-radius:5px}
+  .trial ul.crit{list-style:none;margin:8px 0 0;padding:0;font-size:.84rem;color:var(--ink-soft)}
+  .trial ul.crit li{margin:3px 0;display:flex;gap:7px;align-items:flex-start}
+  .trial ul.crit .ci{font-weight:800;width:12px;flex:0 0 12px;text-align:center}
   .trial details.proceed{margin-top:8px}
   .trial details.proceed summary{cursor:pointer;font-family:'Space Mono';font-size:.78rem;font-weight:700;color:var(--teal-d);list-style:none}
   .trial details.proceed summary::before{content:'+ ';font-weight:700}
@@ -252,13 +261,13 @@ const T={
    greet:"नमस्ते, मैं आपके लिए उपयुक्त क्लिनिकल ट्रायल खोजने में मदद करने के लिए हूँ। शुरू करने के लिए, आपको क्या लक्षण महसूस हो रहे हैं?",
    fail:"असिस्टेंट से संपर्क नहीं हो सका। कृपया थोड़ी देर में पुनः प्रयास करें।",startnew:"नई सलाह शुरू करें",past:"यह पुरानी बातचीत है। फिर से बात करने के लिए नई शुरू करें।",ttsLang:"hi-IN"}
 };
-Object.assign(T.en,{res_match:"Match",res_cond:"Condition",res_ref:"Ref",res_site:"Site",res_trial:"Trial",disc:"This is not a diagnosis. Please see a doctor.",
+Object.assign(T.en,{res_match:"Match",res_cond:"Condition",res_ref:"Ref",res_site:"Site",res_trial:"Trial",res_conf:"Eligibility confidence",disc:"This is not a diagnosis. Please see a doctor.",
   w_mode:"Would you like to speak or type?",w_speak:"Speak",w_write:"Write",
   elig:"Eligibility",proceed:"How to proceed",p_ref:"Note this reference and show it to your doctor:",p_contact:"Contact the research site:",p_via:"through the hospital listed above",p_confirm:"The team confirms your eligibility (age, condition, tests).",p_free:"Taking part is free for patients.",p_open:"Open official page",v_tap:"Tap the mic and speak",v_listen:"Listening...",v_think:"Thinking...",v_speak:"Speaking...",v_key:"Key information",v_sym:"Symptoms",v_tr:"Trials found",v_empty:"Information will appear here as we talk.",v_title:"Voice consultation"});
-Object.assign(T.fr,{res_match:"Corresp.",res_cond:"Condition",res_ref:"Ref",res_site:"Site",res_trial:"Essai",disc:"Ceci n'est pas un diagnostic. Consultez un medecin.",
+Object.assign(T.fr,{res_match:"Corresp.",res_cond:"Condition",res_ref:"Ref",res_site:"Site",res_trial:"Essai",res_conf:"Confiance d'eligibilite",disc:"Ceci n'est pas un diagnostic. Consultez un medecin.",
   w_mode:"Voulez-vous parler ou ecrire ?",w_speak:"Parler",w_write:"Ecrire",
   elig:"Eligibilite",proceed:"Comment proceder",p_ref:"Notez cette reference et montrez-la a votre medecin :",p_contact:"Contactez le site de recherche :",p_via:"via l'hopital indique ci-dessus",p_confirm:"L'equipe confirme votre eligibilite (age, condition, examens).",p_free:"La participation est gratuite pour les patients.",p_open:"Voir la page officielle",v_tap:"Touchez le micro et parlez",v_listen:"A l'ecoute...",v_think:"Reflexion...",v_speak:"Reponse...",v_key:"Informations cles",v_sym:"Symptomes",v_tr:"Essais trouves",v_empty:"Les informations apparaitront ici au fil de la discussion.",v_title:"Consultation vocale"});
-Object.assign(T.hi,{res_match:"मिलान",res_cond:"स्थिति",res_ref:"संदर्भ",res_site:"स्थल",res_trial:"ट्रायल",disc:"यह निदान नहीं है। कृपया डॉक्टर से मिलें।",
+Object.assign(T.hi,{res_match:"मिलान",res_cond:"स्थिति",res_ref:"संदर्भ",res_site:"स्थल",res_trial:"ट्रायल",res_conf:"पात्रता विश्वास",disc:"यह निदान नहीं है। कृपया डॉक्टर से मिलें।",
   w_mode:"आप बोलना चाहेंगे या लिखना?",w_speak:"बोलें",w_write:"लिखें",
   elig:"पात्रता",proceed:"आगे कैसे बढ़ें",p_ref:"यह संदर्भ नोट करें और अपने डॉक्टर को दिखाएँ:",p_contact:"अनुसंधान स्थल से संपर्क करें:",p_via:"ऊपर दिए अस्पताल के माध्यम से",p_confirm:"टीम आपकी पात्रता की पुष्टि करती है (आयु, स्थिति, जाँच)।",p_free:"मरीज़ों के लिए भाग लेना नि:शुल्क है।",p_open:"आधिकारिक पेज खोलें",v_tap:"माइक दबाएँ और बोलें",v_listen:"सुन रहा हूँ...",v_think:"सोच रहा हूँ...",v_speak:"बोल रहा हूँ...",v_key:"मुख्य जानकारी",v_sym:"लक्षण",v_tr:"मिले ट्रायल",v_empty:"बातचीत के दौरान जानकारी यहाँ दिखेगी।",v_title:"वॉइस परामर्श"});
 let lang='en';
@@ -364,9 +373,22 @@ function resultHTML(data){
   h+=trials.slice(0,5).map(x=>`<div class="trial"><div class="row1"><span class="badge">${esc(x.status||t('res_trial'))}</span><span class="score">${esc(t('res_match'))} ${x.score}/${kws.length||x.score}</span></div>
     <h3>${esc(x.title||x.nct_id)}</h3>${x.reason?`<div class="meta" style="color:var(--teal-d)">${esc(x.reason)}</div>`:''}<div class="meta"><b>${esc(t('res_cond'))}</b> ${esc(x.condition)} / <b>${esc(t('res_ref'))}</b> ${esc(x.nct_id)}</div>
     ${(x.hospitals||[]).filter(hh=>hh&&hh.name).slice(0,2).map(hh=>`<div class="meta"><b>${esc(t('res_site'))}</b> ${esc(hh.name)}${hh.city?', '+esc(hh.city):''}${hh.country?' ('+esc(hh.country)+')':''}</div>`).join('')}
+    ${matchBlock(x)}
     ${eligLine(x)}
     ${proceedBlock(x)}</div>`).join('');
   h+=`<div class="disc">${esc(t('disc'))}</div>`;return h;
+}
+function matchBlock(x){
+  const cm=x.criteria_match||[]; const conf=(typeof x.confidence==='number')?x.confidence:null;
+  if(!cm.length&&conf===null)return '';
+  const ic={met:'✓',unmet:'✗',unknown:'?',na:'–'};
+  const col={met:'#0E7C66',unmet:'#E4573B',unknown:'#8A8577',na:'#8A8577'};
+  let bar='';
+  if(conf!==null){const c=conf>=66?'#0E7C66':conf>=40?'#C77D2E':'#E4573B';
+    bar=`<div class="confrow"><span class="conflab">${esc(t('res_conf'))}</span><span class="confval" style="color:${c}">${conf}%</span></div>
+    <div class="confbar"><i style="width:${conf}%;background:${c}"></i></div>`;}
+  const items=cm.map(cr=>{const st=col[cr.status]||'#8A8577';return `<li><span class="ci" style="color:${st}">${ic[cr.status]||'?'}</span> ${esc(cr.label)}</li>`;}).join('');
+  return `<div class="matchb">${bar}${items?`<ul class="crit">${items}</ul>`:''}</div>`;
 }
 function eligLine(x){
   const parts=[];
