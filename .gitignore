@@ -26,3 +26,6 @@ web-build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Docs de travail internes (garder en local, pas dans le repo public)
+docs/
