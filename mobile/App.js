@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView,
   ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Linking,
+  StatusBar as RNStatusBar,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useAudioRecorder, RecordingPresets, AudioModule, setAudioModeAsync, createAudioPlayer } from 'expo-audio';
@@ -140,11 +141,17 @@ export default function App() {
   return (
     <SafeAreaView style={s.app}>
       <StatusBar style="dark" />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
+      >
       <View style={s.bar}>
         <Text style={s.brand}>Neuro-Synthetix</Text>
         <TouchableOpacity onPress={() => setStep('lang')}><Text style={s.lang}>{lang.toUpperCase()}</Text></TouchableOpacity>
       </View>
-      <ScrollView ref={scroller} style={s.thread} contentContainerStyle={{ padding: 16 }}>
+      <ScrollView ref={scroller} style={s.thread} contentContainerStyle={{ padding: 16 }}
+        keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive">
         {messages.map((m, i) => (
           <View key={i} style={[s.row, m.role === 'user' ? s.rowUser : s.rowBot]}>
             <View style={[s.bubble, m.role === 'user' ? s.bubbleUser : s.bubbleBot]}>
@@ -165,7 +172,6 @@ export default function App() {
         ))}
         {busy && <ActivityIndicator color="#0E7C66" style={{ marginTop: 8 }} />}
       </ScrollView>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={s.composer}>
           <TouchableOpacity style={[s.mic, recording && s.micRec]} onPress={record}>
             <Text style={{ fontSize: 20 }}>{recording ? '■' : '🎙️'}</Text>
@@ -181,8 +187,8 @@ export default function App() {
 }
 
 const s = StyleSheet.create({
-  app: { flex: 1, backgroundColor: '#FAF7F2' },
-  center: { flex: 1, backgroundColor: '#FAF7F2', alignItems: 'center', justifyContent: 'center', padding: 26 },
+  app: { flex: 1, backgroundColor: '#FAF7F2', paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
+  center: { flex: 1, backgroundColor: '#FAF7F2', alignItems: 'center', justifyContent: 'center', padding: 26, paddingTop: Platform.OS === 'android' ? RNStatusBar.currentHeight : 0 },
   logo: { width: 54, height: 54, borderRadius: 16, backgroundColor: '#0E7C66', marginBottom: 16 },
   h1: { fontSize: 24, fontWeight: '700', color: '#14181C', textAlign: 'center' },
   sub: { fontSize: 13, color: '#6B7680', marginTop: 6, marginBottom: 22 },
