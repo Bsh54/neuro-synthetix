@@ -5,21 +5,28 @@ The mark must contain **NO text, NO letters, NO words** — a pure symbol only.
 
 ---
 
-## PRIMARY PROMPT (copy-paste)
+## PRIMARY PROMPT (copy-paste) — vivid, modern, high-impact
 
 ```
-A modern, minimal startup logo mark for a health-tech company that connects patients to clinical trials. Abstract symbol only, absolutely no text, no letters, no words.
+A bold, vibrant, modern startup app-icon logo mark for a health-tech company that connects patients to clinical trials. Abstract symbol only — absolutely no text, no letters, no words.
 
-Concept: a bridge made of connected nodes — a small "human" dot on one side linked through a clean network graph to a "care" node on the other side, symbolizing a voice bridge between a patient and the right clinical trial. Blend two ideas subtly: (1) a neural / knowledge-graph constellation of circles joined by thin confident lines, and (2) a gentle speech / sound wave that flows through the connection, hinting at a voice-first assistant.
+Concept: a luminous "connection pulse" — glowing network nodes forming a bridge that arcs from a human spark on one side to a care node on the other, energized by a flowing sound/voice wave running through it (voice-first assistant). It should feel alive, electric and hopeful: a signal traveling, a link lighting up. Iconic and instantly memorable at any size.
 
-Style: flat vector, geometric, precise, friendly and trustworthy, medical-grade but warm and human. Balanced negative space, single centered mark, strong silhouette that stays legible at 16px as an app icon and crisp at 4K. Smooth rounded joints, even line weights, subtle depth. Think Stripe / Linear / Notion level of craft — clean, timeless, premium.
+Style: premium 2025 app-icon energy. Vivid, high-saturation gradient with real depth and a soft inner glow / light bloom around the nodes, clean crisp edges, dynamic sense of motion. Confident smooth curves, bold rounded geometry, strong central silhouette. Think the polish of Linear / Arc / Framer / modern iOS icons — striking, glossy-clean, luminous, but still refined (not childish, not cluttered).
 
-Color palette: deep medical teal-green #0E7C66 as the primary, with a soft mint #EAF6F1 highlight, one warm coral accent #E4573B and a single warm amber dot #F0C888 for a spark of humanity. Cohesive, calm, high-contrast.
+Color: an energetic gradient flowing from emerald green #10B981 through deep medical teal #0E7C66 into a bright cyan #22D3EE, with a vivid coral-orange spark #FF6B4A and a glowing warm amber node #FFC55C as the human accent. High contrast, radiant, saturated, cohesive.
 
-Composition: the symbol perfectly centered, generous even padding around it, isolated on a pure flat background. Vector illustration, sharp edges, no photographic texture, no gradient noise, no drop shadows, no 3D bevels, no mockups, no watermark.
+Lighting & finish: subtle luminous glow, gentle gradient bloom, crisp highlights, a hint of glass-like depth. Balanced negative space, single centered mark, generous even padding, legible as a 16px favicon and stunning at 4K.
 
-Ultra high resolution, 4K, crisp, production-ready, transparent-friendly.
+Vector-clean shapes, sharp edges, no photographic texture, no noise, no mockup, no watermark, no frame.
+
+Ultra high resolution, 4K, production-ready.
 ```
+
+### Optional style pushes (add one line if you want a specific direction)
+- **Gradient-flat / iOS icon:** `Flat vivid gradient icon, rounded-square friendly, glossy modern, subtle bloom.`
+- **Glowing neon-tech:** `Neon glow accents, dark-friendly, electric light trails between the nodes.`
+- **3D-lite depth:** `Soft 3D depth, glassy translucent layers, gentle drop light, still icon-clean.`
 
 ---
 
@@ -41,10 +48,13 @@ Append ONE of these lines to the primary prompt:
 ```
 text, letters, words, typography, numbers, watermark, signature, caption, tagline,
 photorealism, human face, stethoscope cliché, red cross, generic medical cross, pill,
-DNA double helix cliché, heartbeat line cliché, gradient banding, noise, grain,
-3D render, bevel, heavy drop shadow, mockup, frame, border, busy background, clutter,
-low resolution, blurry, jpeg artifacts, distorted, asymmetrical mess
+DNA double helix cliché, heartbeat line cliché, banding, noise, grain, jpeg artifacts,
+mockup, frame, border, busy background, clutter, dull, flat lifeless colors, muddy,
+low resolution, blurry, distorted, asymmetrical mess
 ```
+
+> Note: we now WANT vivid gradients, glow and depth — so do NOT exclude gradient/glow/3D.
+> Only exclude banding/noise (bad gradients), not gradients themselves.
 
 ---
 
