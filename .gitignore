@@ -29,3 +29,11 @@ Thumbs.db
 
 # Docs de travail internes (garder en local, pas dans le repo public)
 docs/
+
+# Fichiers de travail / dumps de debug (jamais dans le repo)
+explog.txt
+r.txt
+rr.txt
+x.txt
+ctis.json
+*.log
