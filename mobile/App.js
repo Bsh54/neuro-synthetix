@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   SafeAreaView, View, Text, TextInput, TouchableOpacity, ScrollView,
-  ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Linking, Image,
+  ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Linking, Image, Animated,
   StatusBar as RNStatusBar,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -12,9 +12,9 @@ import * as Speech from 'expo-speech';
 const API = 'https://neuro.shadrakbessanh.me';
 
 const T = {
-  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', conf: 'पात्रता विश्वास', voiceTap: 'बोलने के लिए माइक दबाएँ', speaking: 'बोल रहा हूँ...', toText: 'लिखने के लिए', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', heroLead: 'हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। हम आवाज़ से, कुछ ही सेकंड में यह पुल बनाते हैं।', howTitle: 'यह कैसे काम करता है', disc: 'मार्गदर्शन उपकरण, निदान नहीं।', code: 'hi-IN' },
-  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', conf: 'Eligibility confidence', voiceTap: 'Tap the mic and speak', speaking: 'Speaking...', toText: 'Switch to typing', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', heroLead: 'Thousands of patients search for treatment. Thousands of trials search for patients. We build the bridge — by voice, in seconds.', howTitle: 'How it works', disc: 'Orientation tool, not a diagnosis.', code: 'en-IN' },
-  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', conf: 'Confiance eligibilite', voiceTap: 'Touchez le micro et parlez', speaking: 'Reponse...', toText: 'Passer a l\'ecriture', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', heroLead: 'Des milliers de patients cherchent un traitement. Des milliers d\'essais cherchent des patients. Nous construisons le pont, a la voix, en quelques secondes.', howTitle: 'Comment ca marche', disc: 'Outil d\'orientation, pas un diagnostic.', code: 'fr-FR' },
+  hi: { greet: 'नमस्ते, आपको क्या लक्षण महसूस हो रहे हैं?', ph: 'यहाँ लिखें...', speak: 'बोलें', write: 'लिखें', mode: 'आप बोलना चाहेंगे या लिखना?', pick: 'भाषा चुनें', listening: 'सुन रहा हूँ...', thinking: 'सोच रहा हूँ...', open: 'आधिकारिक पेज', conf: 'पात्रता विश्वास', voiceTap: 'बोलने के लिए दबाकर रखें', retry: 'क्षमा करें, कृपया फिर से बोलें', speaking: 'बोल रहा हूँ...', toText: 'लिखने के लिए', replay: 'फिर सुनें', tag: 'आपकी भाषा में सही क्लिनिकल ट्रायल खोजें।', learn: 'और जानें', begin: 'शुरू करें', heroLead: 'हज़ारों मरीज़ इलाज ढूँढते हैं। हज़ारों ट्रायल मरीज़ ढूँढते हैं। हम आवाज़ से, कुछ ही सेकंड में यह पुल बनाते हैं।', howTitle: 'यह कैसे काम करता है', disc: 'मार्गदर्शन उपकरण, निदान नहीं।', code: 'hi-IN' },
+  en: { greet: 'Hello, what symptoms are you feeling?', ph: 'Type here...', speak: 'Speak', write: 'Write', mode: 'Would you like to speak or type?', pick: 'Choose your language', listening: 'Listening...', thinking: 'Thinking...', open: 'Official page', conf: 'Eligibility confidence', voiceTap: 'Hold to speak, release to send', retry: 'Sorry, please try again', speaking: 'Speaking...', toText: 'Switch to typing', replay: 'Replay', tag: 'Find the right clinical trial, in your language.', learn: 'Learn more', begin: 'Start', heroLead: 'Thousands of patients search for treatment. Thousands of trials search for patients. We build the bridge — by voice, in seconds.', howTitle: 'How it works', disc: 'Orientation tool, not a diagnosis.', code: 'en-IN' },
+  fr: { greet: 'Bonjour, quels symptomes ressentez-vous ?', ph: 'Ecrivez ici...', speak: 'Parler', write: 'Ecrire', mode: 'Voulez-vous parler ou ecrire ?', pick: 'Choisissez votre langue', listening: 'Ecoute...', thinking: 'Reflexion...', open: 'Page officielle', conf: 'Confiance eligibilite', voiceTap: 'Maintiens pour parler, relache pour envoyer', retry: 'Desole, reessayez sil vous plait', speaking: 'Reponse...', toText: 'Passer a l\'ecriture', replay: 'Reecouter', tag: 'Trouvez le bon essai clinique, dans votre langue.', learn: 'En savoir plus', begin: 'Commencer', heroLead: 'Des milliers de patients cherchent un traitement. Des milliers d\'essais cherchent des patients. Nous construisons le pont, a la voix, en quelques secondes.', howTitle: 'Comment ca marche', disc: 'Outil d\'orientation, pas un diagnostic.', code: 'fr-FR' },
 };
 
 const CRIT_IC = { met: '✓', unmet: '✗', unknown: '?', na: '–' };
@@ -37,9 +37,22 @@ export default function App() {
   const [recording, setRecording] = useState(false);
   const [mode, setMode] = useState('write');       // 'speak' | 'write' — decides auto voice
   const [voiceGreeted, setVoiceGreeted] = useState(false);
+  const [lastReply, setLastReply] = useState('');
   const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const scroller = useRef(null);
+  const pulse = useRef(new Animated.Value(0)).current;
   const t = (k) => (T[lang] && T[lang][k]) || T.en[k];
+
+  // halo qui pulse pendant l'ecoute
+  useEffect(() => {
+    if (!recording) { pulse.stopAnimation(); pulse.setValue(0); return; }
+    const loop = Animated.loop(Animated.sequence([
+      Animated.timing(pulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(pulse, { toValue: 0, duration: 800, useNativeDriver: true }),
+    ]));
+    loop.start();
+    return () => loop.stop();
+  }, [recording]);
 
   useEffect(() => {
     if (step !== 'splash') return;
@@ -51,6 +64,7 @@ export default function App() {
   useEffect(() => {
     if (step !== 'voice' || voiceGreeted) return;
     setVoiceGreeted(true);
+    setLastReply(t('greet'));
     const id = setTimeout(() => speak(t('greet')), 500);
     return () => clearTimeout(id);
   }, [step, voiceGreeted]);
@@ -71,6 +85,7 @@ export default function App() {
   const startChat = (m) => {
     setMode(m);
     setVoiceGreeted(false);
+    setLastReply('');
     setMessages([{ role: 'bot', text: t('greet') }]);
     setHistory([{ role: 'assistant', content: T.en.greet }]);
     setStep(m === 'speak' ? 'voice' : 'chat');
@@ -84,34 +99,45 @@ export default function App() {
     setMessages((m) => [...m, { role: 'user', text }]);
     setInput('');
     scroll();
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 60000);
     try {
       const r = await fetch(API + '/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ history: history.slice(-10), message: text, lang }),
+        body: JSON.stringify({ history: history.slice(-10), message: text, lang }), signal: ctrl.signal,
       });
       const d = await r.json();
-      if (!d || !d.reply) { setMessages((m) => [...m, { role: 'bot', text: 'Sorry, please try again.' }]); setBusy(false); return; }
+      if (!d || !d.reply) throw new Error('empty');
       setHistory((h) => [...h, { role: 'user', content: d.user_en || text }, { role: 'assistant', content: d.reply_en || d.reply }]);
       setMessages((m) => [...m, { role: 'bot', text: d.reply, trials: d.trials || [] }]);
+      setLastReply(d.reply);
       scroll();
       if (mode === 'speak') speak(d.reply);   // audio only in voice mode, never when typing
     } catch (e) {
-      setMessages((m) => [...m, { role: 'bot', text: 'Network error. Please try again.' }]);
+      setMessages((m) => [...m, { role: 'bot', text: t('retry') }]);
+      if (mode === 'speak') speak(t('retry'));   // feedback vocal en mode audio
+    } finally {
+      clearTimeout(to);
+      setBusy(false);
     }
-    setBusy(false);
   }
 
   async function speak(text) {
     if (!text) return;
     const devLang = lang === 'fr' ? 'fr-FR' : lang === 'hi' ? 'hi-IN' : 'en-US';
     const deviceTTS = () => { try { Speech.stop(); Speech.speak(text, { language: devLang, rate: 0.98 }); } catch (e) {} };
+    // IMPORTANT : repasser la session audio en mode LECTURE, sinon (apres un enregistrement)
+    // la lecture est muette. C'est la cause du "pas d'audio".
+    try { await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }); } catch (e) {}
     try {
-      // Hindi + English : voix Sarvam (naturelle, voix indiennes). Sarvam ne fait PAS le francais.
       if (lang === 'hi' || lang === 'en') {
+        const ctrl = new AbortController();
+        const to = setTimeout(() => ctrl.abort(), 20000);
         const r = await fetch(API + '/tts', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text, lang }),
+          body: JSON.stringify({ text, lang }), signal: ctrl.signal,
         });
+        clearTimeout(to);
         const d = await r.json();
         if (d && d.audio) {
           const path = FileSystem.cacheDirectory + 'reply.wav';
@@ -167,19 +193,27 @@ export default function App() {
   }
   async function pttStop() {
     if (!recording) return;
+    setRecording(false);
+    let uri = null;
+    try { await audioRecorder.stop(); uri = audioRecorder.uri; } catch (e) {}
+    if (!uri) return;
+    setBusy(true);
+    const ctrl = new AbortController();
+    const to = setTimeout(() => ctrl.abort(), 25000);
     try {
-      setRecording(false);
-      await audioRecorder.stop();
-      const uri = audioRecorder.uri;
-      if (!uri) return;
-      setBusy(true);
       const form = new FormData();
       form.append('file', { uri, name: 'audio.m4a', type: 'audio/m4a' });
-      const r = await fetch(API + '/stt?lang=' + lang, { method: 'POST', body: form });
+      const r = await fetch(API + '/stt?lang=' + lang, { method: 'POST', body: form, signal: ctrl.signal });
       const d = await r.json();
+      clearTimeout(to);
       setBusy(false);
       if (d && d.text && d.text.trim()) send(d.text.trim());
-    } catch (e) { setBusy(false); }
+      else speak(t('retry'));   // rien compris -> on le dit a voix haute
+    } catch (e) {
+      clearTimeout(to);
+      setBusy(false);
+      speak(t('retry'));
+    }
   }
 
   /* ----- welcome screens ----- */
@@ -236,17 +270,31 @@ export default function App() {
         <LangBar />
         <View style={s.vCenter}>
           <Text style={s.vStatus}>{status}</Text>
-          <TouchableOpacity
-            style={[s.vMic, recording && s.vMicOn]}
-            activeOpacity={0.9}
-            onPressIn={pttStart}
-            onPressOut={pttStop}
-            disabled={busy}
-          >
-            {busy ? <ActivityIndicator color="#fff" size="large" />
-              : <Text style={{ fontSize: 52 }}>🎙️</Text>}
-          </TouchableOpacity>
+          <View style={{ width: 220, height: 220, alignItems: 'center', justifyContent: 'center' }}>
+            <Animated.View
+              pointerEvents="none"
+              style={[s.vHalo, {
+                opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] }),
+                transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.7] }) }],
+              }]}
+            />
+            <TouchableOpacity
+              style={[s.vMic, recording && s.vMicOn]}
+              activeOpacity={0.9}
+              onPressIn={pttStart}
+              onPressOut={pttStop}
+              disabled={busy}
+            >
+              {busy ? <ActivityIndicator color="#fff" size="large" />
+                : <Text style={{ fontSize: 52 }}>🎙️</Text>}
+            </TouchableOpacity>
+          </View>
           <Text style={s.vHint}>{t('voiceTap')}</Text>
+          {lastReply && !busy && !recording ? (
+            <TouchableOpacity style={s.vReplay} onPress={() => speak(lastReply)}>
+              <Text style={s.vReplayTxt}>🔊  {t('replay')}</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
         <TouchableOpacity style={s.vBottom} onPress={() => setStep('chat')}>
           <Text style={s.learn}>⌨️  {t('toText')}</Text>
@@ -331,6 +379,9 @@ const s = StyleSheet.create({
   vStatus: { fontSize: 17, fontWeight: '700', color: '#4A5560', marginBottom: 30, textAlign: 'center' },
   vMic: { width: 128, height: 128, borderRadius: 64, backgroundColor: '#0E7C66', alignItems: 'center', justifyContent: 'center', shadowColor: '#0E7C66', shadowOpacity: 0.35, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 8 },
   vMicOn: { backgroundColor: '#E4573B', shadowColor: '#E4573B' },
+  vHalo: { position: 'absolute', width: 128, height: 128, borderRadius: 64, backgroundColor: '#E4573B' },
+  vReplay: { marginTop: 26, flexDirection: 'row', alignItems: 'center', borderWidth: 1.4, borderColor: '#DED6C8', borderRadius: 22, paddingVertical: 9, paddingHorizontal: 18, backgroundColor: '#fff' },
+  vReplayTxt: { fontSize: 14, fontWeight: '700', color: '#0A5C4C' },
   vReplyBox: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#E6DFD4', borderRadius: 16, padding: 15, marginTop: 30, width: '100%' },
   vReply: { fontSize: 15.5, color: '#14181C', lineHeight: 22 },
   vSpeak: { alignSelf: 'flex-start', marginTop: 10, paddingVertical: 4, paddingHorizontal: 10, borderRadius: 10, backgroundColor: '#EFEAE0' },
