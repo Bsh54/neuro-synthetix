@@ -7,6 +7,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useAudioRecorder, RecordingPresets, AudioModule, setAudioModeAsync, createAudioPlayer } from 'expo-audio';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as Speech from 'expo-speech';
 
 const API = 'https://neuro.shadrakbessanh.me';
 
@@ -101,18 +102,26 @@ export default function App() {
   }
 
   async function speak(text) {
+    if (!text) return;
+    const devLang = lang === 'fr' ? 'fr-FR' : lang === 'hi' ? 'hi-IN' : 'en-US';
+    const deviceTTS = () => { try { Speech.stop(); Speech.speak(text, { language: devLang, rate: 0.98 }); } catch (e) {} };
     try {
-      const r = await fetch(API + '/tts', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, lang }),
-      });
-      const d = await r.json();
-      if (!d || !d.audio) return;
-      const path = FileSystem.cacheDirectory + 'reply.wav';
-      await FileSystem.writeAsStringAsync(path, d.audio, { encoding: FileSystem.EncodingType.Base64 });
-      const player = createAudioPlayer(path);
-      player.play();
-    } catch (e) { /* silencieux */ }
+      // Hindi + English : voix Sarvam (naturelle, voix indiennes). Sarvam ne fait PAS le francais.
+      if (lang === 'hi' || lang === 'en') {
+        const r = await fetch(API + '/tts', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, lang }),
+        });
+        const d = await r.json();
+        if (d && d.audio) {
+          const path = FileSystem.cacheDirectory + 'reply.wav';
+          await FileSystem.writeAsStringAsync(path, d.audio, { encoding: FileSystem.EncodingType.Base64 });
+          createAudioPlayer(path).play();
+          return;
+        }
+      }
+      deviceTTS();   // francais + repli si Sarvam ne renvoie rien
+    } catch (e) { deviceTTS(); }
   }
 
   async function record() {
@@ -218,16 +227,13 @@ export default function App() {
     );
   }
 
-  /* ----- voice mode ----- */
+  /* ----- voice mode : reponse VOCALE uniquement, aucun texte affiche ----- */
   if (step === 'voice') {
-    const hasExchange = messages.some((m) => m.role === 'user');
-    const lastBot = hasExchange ? [...messages].reverse().find((m) => m.role === 'bot') : null;
     const status = recording ? t('listening') : busy ? t('thinking') : t('voiceTap');
     return (
       <SafeAreaView style={s.app}>
         <StatusBar style="dark" />
         <LangBar />
-        {/* micro centre */}
         <View style={s.vCenter}>
           <Text style={s.vStatus}>{status}</Text>
           <TouchableOpacity
@@ -242,29 +248,6 @@ export default function App() {
           </TouchableOpacity>
           <Text style={s.vHint}>{t('voiceTap')}</Text>
         </View>
-        {/* resultats (uniquement apres un vrai echange) */}
-        {lastBot ? (
-          <ScrollView style={{ maxHeight: 260 }} contentContainerStyle={{ padding: 18, paddingTop: 0 }}>
-            <View style={s.vReplyBox}>
-              <Text style={s.vReply}>{lastBot.text}</Text>
-              <TouchableOpacity style={s.vSpeak} onPress={() => speak(lastBot.text)}>
-                <Text style={{ fontSize: 15 }}>🔊</Text>
-              </TouchableOpacity>
-            </View>
-            {(lastBot.trials || []).slice(0, 4).map((x, j) => (
-              <View key={j} style={[s.trial, { width: '100%' }]}>
-                <Text style={s.trialTitle}>{x.title || x.nct_id}</Text>
-                {x.reason ? <Text style={s.trialWhy}>{x.reason}</Text> : null}
-                {typeof x.confidence === 'number' ? (
-                  <Text style={[s.confVal, { color: confColor(x.confidence), marginTop: 6 }]}>{t('conf')}: {x.confidence}%</Text>
-                ) : null}
-                <Text style={s.trialMeta}>{x.condition} · {x.nct_id}</Text>
-                {x.url ? <Text style={s.link} onPress={() => Linking.openURL(x.url)}>{t('open')} →</Text> : null}
-              </View>
-            ))}
-          </ScrollView>
-        ) : null}
-        {/* bouton tout en bas */}
         <TouchableOpacity style={s.vBottom} onPress={() => setStep('chat')}>
           <Text style={s.learn}>⌨️  {t('toText')}</Text>
         </TouchableOpacity>
